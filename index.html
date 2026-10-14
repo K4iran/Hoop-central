@@ -1,0 +1,186 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080706"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Hoop Central</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080706;--pn:#15110d;--ln:#33261a;--tx:#f4efe9;--mu:#a89b8c;--g:#ff7a1a;--r:#ff2d4a;--o:#ffb020;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--tx);font:15px system-ui,-apple-system,sans-serif}
+body{height:100%;display:flex;flex-direction:column;background:radial-gradient(120% 55% at 50% 0,#2b1304,var(--bg) 60%)}
+h2,.D{font-family:Oswald,Impact,'Arial Narrow',sans-serif;text-transform:uppercase;letter-spacing:.04em;margin:0}
+h2{font-size:16px;margin-bottom:8px}
+main{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:10px 12px 16px;touch-action:pan-y}
+nav{display:flex;background:#050404;border-top:1px solid var(--ln)}
+nav button{flex:1;background:0;border:0;color:var(--mu);padding:8px 0 6px;font:500 10px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase}
+nav i{display:block;font-style:normal;font-size:20px}
+nav .on{color:var(--g);text-shadow:0 0 10px var(--g)}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:14px;padding:12px;margin-bottom:10px}
+.row{display:flex;gap:8px;align-items:center}.wrap{flex-wrap:wrap;margin-bottom:8px}.g1{flex:1}
+.btn,.pb{background:#241b13;color:var(--tx);border:1px solid var(--ln);border-radius:10px;padding:10px 12px;font:500 13px Oswald,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.btn small{display:block;color:var(--mu);font-size:11px}
+.btn.on{background:var(--g);color:#031;border-color:var(--g);box-shadow:0 0 14px #ff7a1a66}
+.seg{display:flex;background:#0e0b08;border:1px solid var(--ln);border-radius:12px;padding:3px;margin-bottom:8px}
+.seg button{flex:1;background:0;border:0;color:var(--mu);padding:9px 2px;border-radius:9px;font:500 13px Oswald,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.seg .on{background:var(--g);color:#031}
+.badge{display:flex;gap:7px;align-items:center;background:var(--pn);border:1px solid var(--ln);color:var(--tx);border-radius:30px;padding:5px 12px 5px 5px}
+.badge b{background:var(--g);color:#031;border-radius:20px;padding:1px 9px;font-size:16px}.badge em{color:var(--mu);font-style:normal;font-size:12px}
+.logo{font-size:17px}
+.hint{color:var(--mu);font-size:12px;text-align:center;padding:2px 0 6px}
+.sc{font:700 15px Oswald,sans-serif;color:var(--g);text-shadow:0 0 8px #ff7a1a88;text-align:center;margin:2px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.tile{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:10px 4px;text-align:center}
+.tile b{display:block;font-size:28px;line-height:1.1}.tile small{color:var(--mu);font-size:11px;display:block}
+table{width:100%;text-align:center;border-collapse:collapse}td,th{padding:7px;border-bottom:1px solid var(--ln)}th{color:var(--mu);font:500 12px Oswald}
+.bar{flex:1;height:10px;border-radius:5px;background:#ffffff18;overflow:hidden}.bar i{display:block;height:100%;border-radius:5px;background:var(--g);box-shadow:0 0 8px currentColor}
+.rk{display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--ln)}.rk>b{font-size:26px;width:30px;color:var(--mu)}.rk:first-child>b{color:var(--g)}
+.tr{margin-bottom:14px}.tr .row{margin:3px 0}
+.dt{display:inline-block;width:11px;height:11px;border-radius:50%;margin:0 4px 0 10px}
+.drill{background:#f3ead2 repeating-linear-gradient(transparent 0 25px,#7fa3cf66 25px 26px);color:#2a2418;border-radius:6px 6px 12px 12px;padding:22px 14px 12px;margin:18px 0 8px;position:relative;box-shadow:0 6px 18px #0008}
+.drill:before{content:"";position:absolute;top:-11px;left:50%;width:76px;height:22px;margin-left:-38px;background:linear-gradient(#8a8f99,#4b505a);border-radius:7px}
+.drill h2{color:#1b2433}.drill u{color:#0a7a1c;font-size:12px;text-decoration:none;border:1px solid #0a7a1c;border-radius:5px;padding:1px 5px;margin-left:6px}.drill p{margin:0 0 10px;white-space:pre-wrap}
+.drill .bar{background:#0002}.pb{background:#1b2433;color:#fff;padding:8px 12px}
+input,textarea{width:100%;background:#0b0907;border:1px solid var(--ln);color:var(--tx);border-radius:10px;padding:11px;font:16px system-ui;margin:0 0 8px}
+#ov:not(:empty):before{content:"";position:fixed;inset:0;background:#000a;z-index:39}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#110d09;border-top:2px solid var(--g);border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px #000;animation:up .2s}
+.big{flex:1;border:0;border-radius:14px;padding:20px 0;font:700 22px Oswald,sans-serif;letter-spacing:.06em;color:#031}.gr{background:#39ff14;box-shadow:0 0 18px #39ff1488}.rd{background:var(--r);color:#fff;box-shadow:0 0 18px #ff2d4a88}
+.cel{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:#000b;pointer-events:none;overflow:hidden;animation:fi .15s}
+.cel div{font:700 21vw/.95 Oswald,Impact,sans-serif;text-align:center;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+.sw{color:var(--g);text-shadow:0 0 30px var(--g),0 0 70px #ff7a1a88}.sp{color:#ffd23f;text-shadow:0 0 30px #ffd23f,0 0 70px #ffd23f88}
+.cel b{position:absolute;top:-20px;width:9px;height:15px;animation:fall 1.5s ease-in forwards}
+.pulse{animation:pl .9s infinite;transform-box:fill-box;transform-origin:center}
+@keyframes up{from{transform:translateY(100%)}}@keyframes fi{from{opacity:0}}@keyframes pop{from{transform:scale(.2);opacity:0}}
+@keyframes fall{to{transform:translate(var(--dx),110vh) rotate(720deg)}}@keyframes pl{50%{opacity:.3;transform:scale(1.5)}}
+@media(prefers-reduced-motion:reduce){.cel b,.pulse{animation:none}}
+.rb{flex:none;width:42px;height:42px;border-radius:50%;border:0;background:var(--g);color:#1a0a00;font-size:17px;box-shadow:0 0 14px #ff7a1a88}
+.rb.rc{background:var(--r);color:#fff;box-shadow:0 0 14px var(--r);animation:rec 1s infinite}
+.bb{padding:6px 10px;font-size:14px;min-width:30px}.bb.on{background:var(--g);color:#1a0a00;border-color:var(--g)}
+.btn:disabled{opacity:.35}
+.pname{background:0;border:0;color:var(--tx);text-align:left;padding:4px 2px}.pname b{display:block;font-size:19px}.pname small{color:var(--mu)}
+@keyframes rec{50%{opacity:.5}}
+.warn{background:var(--r);border-color:var(--r);color:#fff}
+select{width:100%;background:#0b0907;color:var(--tx);border:1px solid var(--ln);border-radius:10px;padding:10px;font:16px system-ui;margin-bottom:8px}
+</style></head><body>
+<main></main>
+<nav>
+<button data-t="court" onclick="go('court')"><i>🏀</i>Court</button>
+<button data-t="stats" onclick="go('stats')"><i>📊</i>Stats</button>
+<button data-t="ranks" onclick="go('ranks')"><i>🏆</i>Spots</button>
+<button data-t="hist" onclick="go('hist')"><i>📍</i>History</button>
+<button data-t="drills" onclick="go('drills')"><i>📋</i>Drills</button>
+<button data-t="plays" onclick="go('plays')"><i>✏️</i>Plays</button>
+</nav>
+<div id="ov"></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let S={p:{name:'',num:'',pos:'PG'},shots:[],ev:[],drills:[{t:'Free Throw Ladder',d:'Make 2 in a row to move up a rung. Start over on a miss.',g:20,m:0},{t:'Corner 3 Catch & Shoot',d:'5 sets of 5 from each corner.',g:25,m:0}],game:1,mode:'practice'};
+try{Object.assign(S,JSON.parse(localStorage.getItem('hc')||'{}'))}catch(e){}
+let tab='court',sub='over',filt='',pend=null,cont='Open',pp=S.p.pos,act='move',dr=null,rs=0,P=[[250,330],[400,250],[100,250],[200,110],[300,110]],L=[];
+const save=()=>{try{localStorage.setItem('hc',JSON.stringify(S))}catch(e){}},cl=()=>{$('#ov').innerHTML=''};
+const Z=['Left Corner 3','Left Wing 3','Top of Key 3','Right Wing 3','Right Corner 3','Left Mid-Range','Top Mid-Range','Right Mid-Range','Paint'];
+const C=[[15,70],[85,300],[250,350],[415,300],[485,70],[85,150],[250,230],[415,150],[250,95]];
+const R=[[0,0,250,141.5,'o'],[0,141.5,190,329,'o'],[190,141.5,120,329,'o'],[310,141.5,190,329,'o'],[250,0,250,141.5,'o'],[0,0,170,470,'i'],[170,190,160,280,'i'],[330,0,170,470,'i'],[170,0,160,190,'i']];
+const is3=(x,y)=>Math.abs(x-250)>220||Math.hypot(x-250,y-52)>237.5;
+const zone=(x,y)=>is3(x,y)?(y<=141.5?(x<250?0:4):x<190?1:x>310?3:2):x>=170&&x<=330&&y<190?8:x<170?5:x>330?7:6;
+const pct=(m,a)=>a?Math.round(m/a*100):null,F=v=>v==null?'–':v+'%';
+const hc=p=>p==null?'#ffffff12':p>50?'#39ff1499':p>=30?'#ffb02099':'#ff2d4a99',col=p=>p==null?'#8b93a7':p>50?'#39ff14':p>=30?'#ffb020':'#ff2d4a';
+const mk=t=>{const d=new Date(t);return d.getFullYear()*12+d.getMonth()};
+const seg=(o,c,f)=>`<div class="seg">${o.map(([v,l])=>`<button class="${v==c?'on':''}" onclick="${f}('${v}')">${l}</button>`).join('')}</div>`;
+const setM=v=>{S.mode=v;pend=null;save();render()},setF=v=>{filt=v;rs=0;render()},setS=v=>{sub=v;rs=0;render()},go=t=>{tab=t;rs=0;render();$('main').scrollTop=0};
+const hd=()=>`<div class="row" style="margin-bottom:8px"><button class="badge" onclick="prof()"><b class="D">#${esc(S.p.num||'0')}</b><span>${esc(S.p.name||'Set up player')}</span><em>${S.p.pos}</em></button><span class="g1"></span><b class="D logo">🏀 Hoop <span style="color:var(--g)">Central</span></b></div>`;
+function court(u='',o='',a=''){return `<svg viewBox="0 0 500 470" ${a}><defs><pattern id="wd" width="26" height="470" patternUnits="userSpaceOnUse"><rect width="26" height="470" fill="#93531e"/><path d="M0 0V470" stroke="#0007" stroke-width="2"/><path d="M13 0V470" stroke="#fff1"/></pattern><clipPath id="i3"><path d="M30 0V141.5A237.5 237.5 0 0 0 470 141.5V0Z"/></clipPath><clipPath id="o3"><path clip-rule="evenodd" d="M0 0H500V470H0ZM30 0V141.5A237.5 237.5 0 0 0 470 141.5V0Z"/></clipPath></defs><rect width="500" height="470" fill="url(#wd)"/><rect width="500" height="470" fill="#0006"/><rect x="170" width="160" height="190" fill="#b3123a55"/>${u}<g fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><rect x="1.5" y="1.5" width="497" height="467"/><rect x="170" width="160" height="190"/><path d="M190 190A60 60 0 0 0 310 190M210 52A40 40 0 0 0 290 52M30 0V141.5A237.5 237.5 0 0 0 470 141.5V0M190 470A60 60 0 0 1 310 470"/><path stroke-dasharray="8 8" d="M190 190A60 60 0 0 1 310 190"/><path d="M220 40H280" stroke-width="5"/><circle cx="250" cy="52" r="7.5" stroke="#ff7a1a" stroke-width="3.5"/></g>${o}</svg>`}
+const sp=(s,e)=>{const p=s.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(s.getScreenCTM().inverse());return[q.x,q.y]};
+function agg(md,gm){const f=x=>(!md||x.md==md)&&(!gm||x.g==gm),sh=S.shots.filter(f),es=S.ev.filter(f),mm=l=>({m:l.filter(x=>x.m).length,a:l.length}),ft=es.filter(e=>e.k=='ft');return{fg:mm(sh),t3:mm(sh.filter(s=>s.p==3)),ft:mm(ft),pts:sh.filter(s=>s.m).reduce((a,s)=>a+s.p,0)+ft.filter(e=>e.m).length,ast:es.filter(e=>e.k=='ast').length,stl:es.filter(e=>e.k=='stl').length,gp:new Set([...sh,...es].filter(x=>x.md=='g').map(x=>x.g)).size}}
+const zs=l=>{const a=Z.map(()=>({m:0,a:0}));l.forEach(s=>{a[s.z].a++;a[s.z].m+=s.m});return a};
+/* COURT */
+const mkr=(s,k)=>`<g transform="translate(${s.x} ${s.y}) scale(${k||1})" fill="none" stroke-linecap="round" stroke-width="4.5" style="filter:drop-shadow(0 0 3px ${s.m?'#39ff14':'#ff2d4a'})">${s.m?'<path stroke="#39ff14" d="M-7 0L-2 6L8-6"/>':'<path stroke="#ff2d4a" d="M-6-6L6 6M6-6L-6 6"/>'}</g>`;
+function courtPg(){const md=S.mode[0],gm=md=='g'?S.game:0,cur=x=>x.md==md&&(!gm||x.g==gm),sh=S.shots.filter(cur),es=S.ev.filter(cur),a=agg(md,gm);
+return hd()+seg([['practice','Practice'],['game','Game']],S.mode,'setM')+`<div class="card" style="padding:5px"><div class="hint">Tap the court where you shot${md=='g'?' (Game '+S.game+')':''}</div>${court('',sh.map(s=>mkr(s)).join('')+(pend?`<circle class="pulse" cx="${pend.x}" cy="${pend.y}" r="12" fill="none" stroke="#fff" stroke-width="3"/>`:''),'id="ct" onclick="tap(event)" style="width:100%;max-height:58dvh;display:block;touch-action:manipulation"')}</div>
+<div class="sc">FG ${a.fg.m}/${a.fg.a} &nbsp; 3PT ${a.t3.m}/${a.t3.a} &nbsp; FT ${a.ft.m}/${a.ft.a} &nbsp; ${a.pts} PTS</div>
+<div class="row wrap">${[['ft',1,'FT ✔'],['ft',0,'FT ✘'],['ast',1,'Assist'],['stl',1,'Steal']].map(([k,m,l])=>`<button class="btn g1" onclick="evt('${k}',${m})">${l}<small>${es.filter(e=>e.k==k&&(k!='ft'||e.m==m)).length}</small></button>`).join('')}</div>
+<div class="row"><button class="btn g1" onclick="S.shots.pop();save();render()">↶ Undo shot</button>${md=='g'?'<button class="btn g1" onclick="newGame()">New game</button>':''}</div>`}
+function tap(e){const[x,y]=sp(e.currentTarget,e);if(x<0||x>500||y<0||y>470)return;pend={x,y};render();sheet()}
+function sheet(){const{x,y}=pend,p=is3(x,y)?3:2;$('#ov').innerHTML=`<div class="sheet"><h2>${Z[zone(x,y)]}: ${p}PT attempt</h2>${S.mode=='game'?`<div class="seg" style="margin:10px 0">${['Open','Slightly Contested','Heavily Contested'].map(c=>`<button class="${c==cont?'on':''}" style="font-size:11px" onclick="cont='${c}';sheet()">${c}</button>`).join('')}</div>`:''}<div class="row" style="margin-top:12px"><button class="big gr" onclick="lg(1)">✔ MADE</button><button class="big rd" onclick="lg(0)">❌ MISSED</button></div><button class="btn" style="width:100%;margin-top:8px" onclick="pend=null;cl();render()">Cancel</button></div>`}
+function lg(m){const{x,y}=pend,p=is3(x,y)?3:2;S.shots.push({x,y,m,md:S.mode[0],c:S.mode=='game'?cont:null,p,z:zone(x,y),t:Date.now(),g:S.game});pend=null;save();cl();render();if(m)cel(p)}
+function evt(k,m){S.ev.push({k,m,md:S.mode[0],t:Date.now(),g:S.game});save();render()}
+function cel(p){const o=document.createElement('div');o.className='cel';o.innerHTML=`<div class="${p==3?'sp':'sw'}">${p==3?'SPLASH!':'SWISH!'}<br>${p}PT!</div>`+Array.from({length:50},(_,i)=>`<b style="left:${Math.random()*100}%;background:${['#ff7a1a','#ffb020','#fff','#ffd23f','#ff4d00'][i%5]};animation-delay:${Math.random()*.4}s;--dx:${Math.random()*160-80}px"></b>`).join('');document.body.append(o);setTimeout(()=>o.remove(),1800)}
+/* STATS */
+const flt=()=>seg([['','All'],['p','Practice'],['g','Game']],filt,'setF');
+function stats(){return hd()+flt()+seg([['over','Overview'],['heat','Hotspots'],['trend','Trend']],sub,'setS')+({over,heat,trend})[sub]()}
+function over(){const a=agg(filt),g=agg('g'),p=agg('p'),T=(l,v,s='',c='#fff')=>`<div class="tile"><small>${l}</small><b class="D" style="color:${c}">${v}</b><small>${s}</small></div>`,P=o=>pct(o.m,o.a),av=v=>g.gp?(v/g.gp).toFixed(1):'–';
+return `<div class="grid">${T('FG%',F(P(a.fg)),a.fg.m+'/'+a.fg.a,col(P(a.fg)))}${T('3PT%',F(P(a.t3)),a.t3.m+'/'+a.t3.a,col(P(a.t3)))}${T('FT%',F(P(a.ft)),a.ft.m+'/'+a.ft.a,col(P(a.ft)))}${T('Points',a.pts)}${T('Assists',a.ast)}${T('Steals',a.stl)}</div>
+<div class="card"><h2>Game averages (${g.gp} games)</h2><div class="grid" style="margin:0">${T('PPG',av(g.pts))}${T('APG',av(g.ast))}${T('SPG',av(g.stl))}</div></div>
+<div class="card"><h2>Practice vs game</h2><table><tr><th></th><th>Practice</th><th>Game</th></tr>${[['FG%','fg'],['3PT%','t3'],['FT%','ft']].map(([l,k])=>`<tr><td>${l}</td><td style="color:${col(P(p[k]))}">${F(P(p[k]))}</td><td style="color:${col(P(g[k]))}">${F(P(g[k]))}</td></tr>`).join('')}</table></div>
+<div class="card"><h2>Reset stats (${filt=='p'?'practice only':filt=='g'?'game only':'all modes'})</h2><div class="row wrap">${[['ft','Free throws'],['ast','Assists'],['stl','Steals'],['sh','Shots'],['all','Everything']].map(([k,l])=>`<button class="btn g1 ${rs==k?'warn':''}" onclick="rst('${k}')">${rs==k?'Tap again to erase':l}</button>`).join('')}</div><div class="hint">Only clears the mode picked at the top. Tap twice to confirm.</div></div><button class="btn" style="width:100%" onclick="demo()">Load demo data</button>`}
+function heat(){const z=zs(S.shots.filter(s=>!filt||s.md==filt));return `<div class="card" style="padding:5px">${court(R.map(([x,y,w,h,c],i)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" clip-path="url(#${c}3)" fill="${hc(pct(z[i].m,z[i].a))}"/>`).join(''),`<g text-anchor="middle" font-family="Oswald,sans-serif" font-weight="700" fill="#fff" stroke="#000c" stroke-width="3" paint-order="stroke">${C.map(([x,y],i)=>z[i].a?`<text x="${x}" y="${y}" font-size="17">${pct(z[i].m,z[i].a)}%</text><text x="${x}" y="${y+15}" font-size="11">${z[i].m}/${z[i].a}</text>`:'').join('')}</g>`,'style="width:100%;max-height:62dvh;display:block"')}</div><div class="hint"><i class="dt" style="background:var(--r)"></i>Under 30%<i class="dt" style="background:var(--o)"></i>30–50%<i class="dt" style="background:#39ff14"></i>Over 50%</div>`}
+function trend(){const c=mk(Date.now()),nm=k=>new Date(Math.floor(k/12),k%12).toLocaleString('en',{month:'long'}),M=k=>{const sh=S.shots.filter(s=>mk(s.t)==k&&(!filt||s.md==filt)),ft=S.ev.filter(e=>e.k=='ft'&&mk(e.t)==k&&(!filt||e.md==filt)),t3=sh.filter(s=>s.p==3),n=l=>l.filter(x=>x.m).length;return[['FG%',pct(n(sh),sh.length)],['3PT%',pct(n(t3),t3.length)],['FT%',pct(n(ft),ft.length)]]},cu=M(c),pv=M(c-1);
+return `<div class="card"><h2>${nm(c-1)} vs ${nm(c)}</h2>${cu.map(([l,v],i)=>{const w=pv[i][1],d=v!=null&&w!=null?v-w:null;return `<div class="tr"><div class="row"><b class="D">${l}</b><span class="g1"></span>${d==null?'<small style="color:var(--mu)">Needs both months</small>':`<b style="color:${d>=0?'#39ff14':'#ff2d4a'}">${d>=0?'▲':'▼'} ${Math.abs(d)} pts</b>`}</div>${[[w,'#5b6b8c',nm(c-1)],[v,'#ff7a1a',nm(c)]].map(([x,cl,n])=>`<div class="row"><small style="width:34px;color:var(--mu)">${n.slice(0,3)}</small><div class="bar"><i style="width:${x||0}%;background:${cl}"></i></div><small style="width:36px;text-align:right">${F(x)}</small></div>`).join('')}</div>`}).join('')}</div>`}
+function demo(){const now=Date.now(),B=[.36,.33,.32,.33,.37,.38,.42,.38,.6],K=['Open','Slightly Contested','Heavily Contested'],dd=()=>Math.random()<.4?Math.random()*13:14+Math.random()*30;
+for(let i=0;i<280;i++){const q=Math.random()<.25,x=q?170+Math.random()*160:Math.random()*500,y=q?Math.random()*185:5+Math.random()*380,z=zone(x,y),d=dd(),md=i%2?'g':'p';S.shots.push({x,y,m:Math.random()<B[z]+(d<14?.08:0)?1:0,md,c:md=='g'?K[i%3]:null,p:is3(x,y)?3:2,z,t:now-d*864e5,g:1+i%6})}
+for(let i=0;i<90;i++){const d=dd(),k=['ft','ft','ft','ast','stl'][i%5];S.ev.push({k,m:k=='ft'?(Math.random()<(d<14?.8:.7)?1:0):1,md:i%2?'g':'p',t:now-d*864e5,g:1+i%6})}S.game=Math.max(S.game,7);save();render()}
+function rst(k){if(rs!=k){rs=k;render();return}rs=0;const f=x=>!filt||x.md==filt;if(k=='sh'||k=='all')S.shots=S.shots.filter(x=>!f(x));if(k=='all')S.ev=S.ev.filter(x=>!f(x));else if(k!='sh')S.ev=S.ev.filter(x=>!(x.k==k&&f(x)));if(k=='all'&&!filt)S.game=1;hs=null;save();render()}
+let hg='',hr='',hs=null;
+const setR=v=>{hr=v;hs=null;render()},hsel=e=>{const t=e.target.closest('[data-s]');hs=t?+t.dataset.s:null;render()},newGame=()=>{S.game++;pend=null;save();render();$('main').scrollTop=0};
+function histPg(){const gs=[...new Set(S.shots.filter(s=>s.md=='g').map(s=>s.g))].sort((a,b)=>b-a),all=S.shots.map((s,i)=>({...s,i})).filter(s=>s.md=='g'&&(!hg||s.g==hg)&&(hr===''||s.m==+hr)),mm=all.filter(s=>s.m).length,sel=hs!=null?S.shots[hs]:null;
+return hd()+`<select onchange="hg=this.value;hs=null;render()"><option value="">All games</option>${gs.map(g=>`<option value="${g}" ${g==hg?'selected':''}>Game ${g}</option>`).join('')}</select>`+seg([['','All shots'],['1','Made'],['0','Missed']],hr,'setR')+`<div class="card" style="padding:5px">${court('',all.map(s=>mkr(s,.85)+`<circle cx="${s.x}" cy="${s.y}" r="14" fill="#0000" data-s="${s.i}"/>`).join('')+(sel?`<circle cx="${sel.x}" cy="${sel.y}" r="17" fill="none" stroke="#fff" stroke-width="2.5"/>`:''),'onclick="hsel(event)" style="width:100%;max-height:56dvh;display:block;touch-action:manipulation"')}</div><div class="sc">${all.length} game shots, ${mm} made${all.length?' ('+pct(mm,all.length)+'%)':''}</div>`+(sel&&sel.md=='g'?`<div class="card"><b class="D" style="font-size:20px;color:${sel.m?'#39ff14':'#ff2d4a'}">${sel.m?'Made':'Missed'} ${sel.p}PT</b><div style="color:var(--mu);margin:4px 0 10px">${Z[sel.z]}<br>Game ${sel.g}, ${sel.c||'Open'}<br>${new Date(sel.t).toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'})}</div><button class="btn" onclick="S.shots.splice(${hs},1);hs=null;save();render()">Delete this shot</button></div>`:`<div class="hint">${S.shots.some(s=>s.md=='g')?'Tap a marker to see that shot.':'No game shots yet. Switch to Game mode on the Court tab and log a shot.'}</div>`)}
+/* SPOTS */
+function ranks(){const z=zs(S.shots.filter(s=>!filt||s.md==filt)),sc=o=>o.a?(o.m+1)/(o.a+3):-1,r=Z.map((n,i)=>({n,...z[i]})).sort((a,b)=>sc(b)-sc(a));
+return hd()+flt()+`<div class="card">${r.map((o,i)=>{const p=pct(o.m,o.a);return `<div class="rk"><b class="D">${i+1}</b><div style="flex:1"><div class="row"><b>${o.n}</b><span class="g1"></span><span style="color:${col(p)}">${p==null?'No attempts':p+'%, '+o.m+'/'+o.a}</span></div><div class="row" style="margin-top:5px"><div class="bar"><i style="width:${p||0}%;background:${col(p)}"></i></div></div></div></div>`}).join('')}</div><div class="hint">Ranked by accuracy, weighted by how often you shoot from each spot.</div>`}
+/* DRILLS */
+function drillPg(){return hd()+`<button class="btn on" style="width:100%;margin-bottom:4px" onclick="dform(-1)">+ New drill</button>`+(S.drills.length?S.drills.map((d,i)=>`<div class="drill"><h2>${esc(d.t)}${d.m>=d.g?'<u>COMPLETE</u>':''}</h2><p>${esc(d.d)}</p><div class="bar"><i style="width:${Math.min(100,d.m/d.g*100)}%"></i></div><div class="row" style="margin-top:9px"><button class="pb" onclick="dm(${i},-1)">−</button><b class="D" style="font-size:20px">${d.m}/${d.g} makes</b><button class="pb" onclick="dm(${i},1)">+</button><span class="g1"></span><button class="pb" onclick="dform(${i})">Edit</button><button class="pb" onclick="S.drills.splice(${i},1);save();render()">✕</button></div></div>`).join(''):'<div class="hint">No drills yet. Add one to start counting makes.</div>')}
+const dm=(i,n)=>{S.drills[i].m=Math.max(0,S.drills[i].m+n);save();render()};
+function dform(i){const d=S.drills[i]||{t:'',d:'',g:20};$('#ov').innerHTML=`<div class="sheet"><h2>${i<0?'New':'Edit'} drill</h2><input id="dt" placeholder="Drill title" value="${esc(d.t)}"><textarea id="dd" rows="3" placeholder="Description, reps, notes">${esc(d.d)}</textarea><div class="row"><span style="color:var(--mu)">Target makes</span><input id="dg" type="number" min="1" inputmode="numeric" value="${d.g}" style="margin:0"></div><div class="row" style="margin-top:12px"><button class="btn g1" onclick="cl()">Cancel</button><button class="btn on g1" onclick="dsave(${i})">Save drill</button></div></div>`}
+function dsave(i){const o={t:$('#dt').value.trim()||'Untitled drill',d:$('#dd').value,g:Math.max(1,+$('#dg').value||1)};if(i<0)S.drills.unshift({...o,m:0});else Object.assign(S.drills[i],o);save();cl();render()}
+/* PROFILE */
+function prof(){pp=S.p.pos||'PG';$('#ov').innerHTML=`<div class="sheet"><h2>Player profile</h2><input id="pn" placeholder="Player name" value="${esc(S.p.name)}"><input id="pj" type="number" inputmode="numeric" placeholder="Jersey number" value="${esc(S.p.num)}"><div class="row">${['PG','SG','SF','PF','C'].map(p=>`<button class="btn pp g1 ${p==pp?'on':''}" onclick="pp='${p}';document.querySelectorAll('.pp').forEach(b=>b.classList.toggle('on',b.textContent==pp))">${p}</button>`).join('')}</div><button class="btn on" style="width:100%;margin-top:12px" onclick="psave()">Save profile</button></div>`}
+function psave(){S.p={name:$('#pn').value.trim()||'Rookie',num:$('#pj').value||'0',pos:pp};save();cl();render()}
+/* PLAYMAKER */
+const pc={pass:'#2ee6ff',drib:'#ffd23f',scr:'#ff7a1a',shoot:'#ff2d4a'};
+function ln(t,x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1,d=Math.hypot(dx,dy)||1,ux=dx/d,uy=dy/d,nx=-uy,ny=ux;let b;
+if(t=='drib'){const p=[];for(let s=0;s<=d;s+=3)p.push((x1+ux*s+nx*5*Math.sin(s/4)).toFixed(1)+','+(y1+uy*s+ny*5*Math.sin(s/4)).toFixed(1));b=`<polyline points="${p.join(' ')}"/>`}
+else b=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${t=='shoot'?'stroke-dasharray="9 7"':''}/>`;
+const e=t=='scr'?`<path stroke-width="7" d="M${x2+nx*15} ${y2+ny*15}L${x2-nx*15} ${y2-ny*15}"/>`:`<path d="M${x2} ${y2}l${-ux*15+nx*8} ${-uy*15+ny*8}M${x2} ${y2}l${-ux*15-nx*8} ${-uy*15-ny*8}"/>`;
+return `<g stroke="${pc[t]}" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">${b}${e}</g>`}
+S.plays=S.plays||[];
+let ball=0,rec=null,rep=null,psub='board',gh=null;
+const P0=[[250,330],[400,250],[100,250],[200,110],[300,110]];
+const bl=(x,y)=>`<g transform="translate(${x} ${y})"><circle r="11" fill="#ff7a1a" stroke="#1a0a00" stroke-width="1.5"/><path d="M-11 0H11M0-11V11M-7.5-8Q-3 0-7.5 8M7.5-8Q3 0 7.5 8" fill="none" stroke="#1a0a00" stroke-width="1.3"/></g>`;
+const rb=()=>rec&&!rec.done;
+const rc=(e,f)=>{if(!rb())return;const n=performance.now();if(!f&&rec.ev.length&&n-rec.l<16)return;rec.cu=rec.ev.length?rec.cu+Math.min(n-rec.l,1200):0;rec.l=n;e.t=Math.round(rec.cu);rec.ev.push(e)};
+const ap=e=>{if(e.k=='m')P[e.i]=[e.x,e.y];else if(e.k=='g')gh=e.x==null?null:[e.x,e.y];else if(e.k=='b')ball=e.i;else{const l=e.l;L.push({...l});gh=null;if(e.r!=null)ball=e.r;else if(l.t!='shoot')P[e.i]=[...l.b]}};
+function lyr(){let h=L.map(l=>ln(l.t,...l.a,...l.b)).join('');
+if(dr&&act=='pass'&&gh)h+=ln('pass',...dr.s,...gh);else if(dr&&act!='move'&&act!='shoot'&&act!='pass')h+=ln(act,...dr.s,...P[dr.i]);
+h+=P.map((p,i)=>`<g data-p="${i}" style="cursor:grab"><circle cx="${p[0]}" cy="${p[1]}" r="24" fill="#0d0a07" stroke="${i==ball?'#ff7a1a':'#fff'}" stroke-width="${i==ball?4:3}"/><text x="${p[0]}" y="${p[1]}" dy=".35em" text-anchor="middle" fill="#fff" font-size="24" font-family="Oswald,sans-serif" font-weight="700" pointer-events="none">${i+1}</text></g>`).join('');
+const q=gh||[P[ball][0]+17,P[ball][1]+17];return h+`<g pointer-events="none">${bl(q[0],q[1])}</g>`}
+const pr=()=>{const g=$('#pg');if(g)g.innerHTML=lyr()};
+function plays(){const rp=!!rep,rg=rb();
+return hd()+seg([['board','Board'],['saved','Saved plays ('+S.plays.length+')']],psub,'setP')+(psub=='saved'?saved():`<div class="row" style="margin-bottom:8px"><button class="rb ${rg?'rc':''}" onclick="${rp?'stp();render()':rg?'recStop()':'recStart()'}">${rp||rg?'■':'▶'}</button><small class="g1" style="color:var(--mu);line-height:1.25">${rp?'Replaying your play':rg?'Recording. Move players and draw actions, then tap stop.':'Tap play to record a new play'}</small><div class="row" style="gap:4px"><small style="color:var(--mu)">Ball</small>${[0,1,2,3,4].map(i=>`<button class="pb bb ${ball==i?'on':''}" onclick="sball(${i})">${i+1}</button>`).join('')}</div></div>
+<div class="card" style="padding:5px">${court('',`<g id="pg">${lyr()}</g>`,'class="noscroll" style="width:100%;max-height:58dvh;display:block;touch-action:none;user-select:none;-webkit-user-select:none" onpointerdown="pd(event)" onpointermove="pm(event)" onpointerup="pu(event)" onpointercancel="pu(event)"')}</div>
+<div class="row wrap">${[['move','Move','#fff'],['scr','┤ Screen',pc.scr],['drib','∿ Dribble',pc.drib],['pass','→ Pass',pc.pass],['shoot','⇢ Shoot',pc.shoot]].map(([k,l,c])=>`<button class="btn g1 ${act==k?'on':''}" style="border-color:${c}" onclick="act='${k}';render()">${l}</button>`).join('')}</div>
+<div class="row"><button class="btn g1" ${rg?'disabled':''} onclick="L.pop();pr()">↶ Undo line</button><button class="btn g1" ${rg?'disabled':''} onclick="L=[];pr()">Clear lines</button><button class="btn g1" ${rg?'disabled':''} onclick="L=[];P=P0.map(p=>[...p]);ball=0;render()">Reset</button></div>
+<div class="hint" style="margin-top:6px">Pick an action, then drag a player. Pass: drag from the ball handler onto a teammate. Shoot: tap a player.</div>`)}
+function saved(){return S.plays.length?S.plays.map((p,i)=>`<div class="card row"><button class="pname g1" onclick="replay(S.plays[${i}])"><b class="D">▶ ${esc(p.n)}</b><small>${(p.ev[p.ev.length-1].t/1000).toFixed(1)}s, ${p.ev.filter(e=>e.k=='l').length} actions</small></button><button class="pb" onclick="psheet(${i})">✎</button><button class="pb" onclick="S.plays.splice(${i},1);save();render()">✕</button></div>`).join(''):'<div class="hint">No saved plays yet. On the Board, tap ▶, run your play, then tap ■ to name and save it.</div>'}
+const setP=v=>{psub=v;render()},sball=i=>{ball=i;rc({k:'b',i},1);render()};
+function recStart(){stp();L=[];rec={cu:0,l:performance.now(),ev:[],init:{P:P.map(p=>[...p]),ball}};render()}
+function recStop(){if(!rec.ev.length){rec=null;render();return}rec.done=1;render();psheet(-1)}
+function psheet(i){$('#ov').innerHTML=`<div class="sheet"><h2>${i<0?'Save play':'Rename play'}</h2><input id="pnm" placeholder="Play name, e.g. Horns Flex" value="${i<0?'':esc(S.plays[i].n)}"><div class="row"><button class="btn g1" onclick="${i<0?'rec=null;':''}cl();render()">${i<0?'Discard':'Cancel'}</button><button class="btn on g1" onclick="psv(${i})">Save</button></div></div>`}
+function psv(i){const n=$('#pnm').value.trim()||'Untitled play';if(i<0){S.plays.unshift({n,init:rec.init,ev:rec.ev,id:Date.now()});rec=null}else S.plays[i].n=n;save();cl();render()}
+function replay(p){stp();rec=null;L=[];P=p.init.P.map(q=>[...q]);ball=p.init.ball;gh=null;psub='board';rep={i:0,t0:performance.now()+500,ev:p.ev};render();rep.raf=requestAnimationFrame(step)}
+function step(){if(!rep)return;const t=performance.now()-rep.t0;while(rep.i<rep.ev.length&&rep.ev[rep.i].t<=t)ap(rep.ev[rep.i++]);pr();if(rep.i>=rep.ev.length){rep=null;render()}else rep.raf=requestAnimationFrame(step)}
+function stp(){if(rep){cancelAnimationFrame(rep.raf);rep=null}}
+function pd(e){if(rep)return;const g=e.target.closest('[data-p]');if(!g)return;e.preventDefault();const i=+g.dataset.p;
+if(act=='shoot'){const l={t:'shoot',a:[...P[i]],b:[250,52]};L.push(l);rc({k:'l',l,i},1);return pr()}
+if(act=='pass'&&i!=ball)return;
+e.currentTarget.setPointerCapture(e.pointerId);dr={i,s:[...P[i]]};if(act=='pass')gh=[...P[i]];pr()}
+function pm(e){if(!dr)return;e.preventDefault();const[x,y]=sp(e.currentTarget,e),X=Math.max(24,Math.min(476,x)),Y=Math.max(24,Math.min(446,y));
+if(act=='pass'){gh=[X,Y];rc({k:'g',x:Math.round(X),y:Math.round(Y)})}else{P[dr.i]=[X,Y];rc({k:'m',i:dr.i,x:Math.round(X),y:Math.round(Y)})}pr()}
+function pu(){if(!dr)return;const{i,s}=dr;dr=null;
+if(act=='pass'){const q=gh||s,r=P.findIndex((p,j)=>j!=i&&Math.hypot(p[0]-q[0],p[1]-q[1])<40);gh=null;if(r>=0){const l={t:'pass',a:s,b:[...P[r]]};L.push(l);ball=r;rc({k:'l',l,i,r},1)}else rc({k:'g'},1)}
+else{const p=P[i];rc({k:'m',i,x:Math.round(p[0]),y:Math.round(p[1])},1);if(act!='move'&&Math.hypot(p[0]-s[0],p[1]-s[1])>15){const l={t:act,a:s,b:[...p]};L.push(l);rc({k:'l',l,i},1)}}
+pr()}
+document.addEventListener('touchmove',e=>{if(e.target.closest&&e.target.closest('.noscroll'))e.preventDefault()},{passive:false});
+const PG={court:courtPg,stats,ranks,hist:histPg,drills:drillPg,plays};
+function render(){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));$('main').innerHTML=PG[tab]()}
+render();if(!S.p.name)prof();
+</script></body></html>
