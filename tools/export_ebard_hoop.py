@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+# Browser export is built by .github/workflows/build-hoop-detector.yml
+
 import json
 import shutil
 from pathlib import Path
