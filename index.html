@@ -139,7 +139,7 @@ function dsave(i){const o={t:$('#dt').value.trim()||'Untitled drill',d:$('#dd').
 const ava=n=>S.p.pic?`<img class="avi" src="${S.p.pic}" style="width:${n}px;height:${n}px">`:`<span class="avi" style="width:${n}px;height:${n}px;font-size:${Math.round(n*.45)}px">${esc((S.p.name||'?')[0].toUpperCase())}</span>`;
 const pread=()=>{if($('#pn'))S.p={...S.p,name:$('#pn').value.trim(),num:$('#pj').value,age:$('#pa').value,ht:$('#ph').value,pos:pp}};
 function prof(){pp=S.p.pos||'PG';const g=agg('g'),av=v=>g.gp?(v/g.gp).toFixed(1):'–',T=(l,v)=>`<div class="tile"><small>${l}</small><b class="D">${v}</b></div>`;
-$('#ov').innerHTML=`<div class="sheet" style="max-height:90dvh;overflow-y:auto"><div class="row" style="margin-bottom:12px"><div style="position:relative;width:76px;height:76px;flex:none">${ava(76)}<input type="file" accept="image/*" class="fo" onchange="pic(this)"></div><div class="g1"><h2 style="font-size:24px;margin:0">${esc(S.p.name||'Your name')} <span style="color:var(--g)">#${esc(S.p.num||'0')}</span></h2><div style="color:var(--mu)">${S.p.pos} · ${esc(S.p.age||'age?')} yrs · ${esc(S.p.ht||'height?')}</div><small style="color:var(--g)">Tap the photo to change it</small></div></div><div class="grid" style="margin-bottom:4px">${T('PPG',av(g.pts))}${T('RPG',av(g.reb))}${T('APG',av(g.ast))}${T('SPG',av(g.stl))}${T('BPG',av(g.blk))}${T('FG%',F(pct(g.fg.m,g.fg.a)))}</div><div class="hint" style="margin-bottom:10px">Game stats only (${g.gp} played)</div><input id="pn" placeholder="Player name" value="${esc(S.p.name)}"><div class="row"><input id="pj" type="number" inputmode="numeric" placeholder="Jersey #" value="${esc(S.p.num)}"><input id="pa" type="number" inputmode="numeric" placeholder="Age" value="${esc(S.p.age||'')}"></div><input id="ph" placeholder="Height, e.g. 6ft 2" value="${esc(S.p.ht||'')}"><div class="row">${['PG','SG','SF','PF','C'].map(p=>`<button class="btn pp g1 ${p==pp?'on':''}" onclick="pp='${p}';document.querySelectorAll('.pp').forEach(b=>b.classList.toggle('on',b.textContent==pp))">${p}</button>`).join('')}</div><div class="row" style="margin-top:12px"><button class="btn g1" onclick="cl()">Close</button><button class="btn on g1" onclick="psave()">Save profile</button></div></div>`}
+$('#ov').innerHTML=`<div class="sheet" style="max-height:90dvh;overflow-y:auto"><div class="row" style="margin-bottom:12px"><div style="position:relative;width:76px;height:76px;flex:none">${ava(76)}<input type="file" accept="image/*" class="fo" onchange="pic(this)"></div><div class="g1"><h2 style="font-size:24px;margin:0">${esc(S.p.name||'Your name')} <span style="color:var(--g)">#${esc(S.p.num||'0')}</span></h2><div style="color:var(--mu)">${S.p.pos} · ${esc(S.p.age||'age?')} yrs · ${esc(S.p.ht||'height?')}</div><small style="color:var(--g)">Tap the photo to change it</small></div></div><div class="grid" style="margin-bottom:4px">${T('PPG',av(g.pts))}${T('RPG',av(g.reb))}${T('APG',av(g.ast))}${T('SPG',av(g.stl))}${T('BPG',av(g.blk))}${T('FG%',F(pct(g.fg.m,g.fg.a)))}</div><div class="hint" style="margin-bottom:10px">Game stats only (${g.gp} played)</div><input id="pn" placeholder="Player name" value="${esc(S.p.name)}"><div class="row"><input id="pj" type="number" inputmode="numeric" placeholder="Jersey #" value="${esc(S.p.num)}"><input id="pa" type="number" inputmode="numeric" placeholder="Age" value="${esc(S.p.age||'')}"></div><input id="ph" placeholder="Height, e.g. 6ft 2" value="${esc(S.p.ht||'')}"><div class="row">${['PG','SG','SF','PF','C'].map(p=>`<button class="btn pp g1 ${p==pp?'on':''}" onclick="pp='${p}';document.querySelectorAll('.pp').forEach(b=>b.classList.toggle('on',b.textContent==pp))">${p}</button>`).join('')}</div><div class="hint" style="margin:8px 0">Export your player profile, shot log and game stats for ZERO. Videos and profile photo are not included.</div><div class="row"><button class="btn g1" onclick="exportZero()">EXPORT FOR ZERO</button></div><div class="row" style="margin-top:12px"><button class="btn g1" onclick="cl()">Close</button><button class="btn on g1" onclick="psave()">Save profile</button></div></div>`}
 function psave(){pread();S.p.name=S.p.name||'Rookie';S.p.num=S.p.num||'0';save();cl();render()}
 function pic(inp){const f=inp.files[0];if(!f)return;pread();const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=160;const m=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,160,160);S.p.pic=c.toDataURL('image/jpeg',.8);URL.revokeObjectURL(im.src);save();prof();render()};im.src=URL.createObjectURL(f)}
 /* PLAYMAKER */
@@ -256,4 +256,162 @@ const PG={court:courtPg,stats,ranks,hist:histPg,drills:drillPg,plays,coach:coach
 function render(){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==(tab=='coach'?'court':tab)));$('main').innerHTML=PG[tab]()}
 render();if(!S.p.name)prof();
 </script>
-<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script></body></html>
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script><script>
+
+/* ZERO data export and upgraded local AI shooting analysis */
+(function(){
+  window.exportZero=function(){
+    pread();
+    var p=S.p||{},payload={format:'hoop-central-zero-export',version:1,exportedAt:new Date().toISOString(),profile:{name:p.name||'',number:p.num||'',position:p.pos||'PG',age:p.age||'',height:p.ht||''},shots:S.shots,events:S.ev,game:S.game,mode:S.mode};
+    try{var blob=new Blob([JSON.stringify(payload)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='hoop-central-zero-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1500);save()}catch(e){alert('Could not export the data in this browser.')}
+  };
+
+  var POSE_FULL='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
+  var BALL_MODEL='https://storage.googleapis.com/mediapipe-tasks/object_detector/efficientdet_lite0_uint8.tflite';
+  var ballRaf=0,oldCfile=window.cfile,oldCr=window.cr,oldCoach=PG.coach;
+
+  window.cfile=function(inp){
+    oldCfile(inp);
+    co.balls=[];co.hoop=null;co.calibratingHoop=false;co.trackingWarning='';co.ballFrames=0;
+    setTimeout(ensureBallOverlay,80);
+  };
+
+  PG.coach=function(){var html=oldCoach();setTimeout(ensureBallOverlay,80);return html};
+
+  function ensureBallOverlay(){
+    var v=$('#cvid'),base=$('#cvs');if(!v||!base)return;
+    var parent=v.parentElement,overlay=document.getElementById('ballOverlay');
+    if(!overlay){overlay=document.createElement('canvas');overlay.id='ballOverlay';overlay.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';overlay.addEventListener('click',calibTap);parent.appendChild(overlay)}
+    window.loopBall();
+  }
+
+  window.loopBall=function(){
+    cancelAnimationFrame(ballRaf);
+    var v=$('#cvid'),c=$('#ballOverlay');if(!v||!c)return;
+    ballRaf=requestAnimationFrame(loopBall);
+    var w=c.clientWidth,h=c.clientHeight;if(c.width!==w||c.height!==h){c.width=w;c.height=h}
+    var x=c.getContext('2d');x.clearRect(0,0,w,h);if(!v.videoWidth)return;
+    var scale=Math.min(w/v.videoWidth,h/v.videoHeight),ox=(w-v.videoWidth*scale)/2,oy=(h-v.videoHeight*scale)/2;
+    function xy(p){return[ox+p[0]*v.videoWidth*scale,oy+p[1]*v.videoHeight*scale]}
+    var trail=(co.balls||[]).filter(function(b){return b.t<=v.currentTime&&v.currentTime-b.t<1.3});
+    if(trail.length>1){x.beginPath();trail.forEach(function(b,i){var p=xy([b.x,b.y]);if(i===0)x.moveTo(p[0],p[1]);else x.lineTo(p[0],p[1])});x.strokeStyle='rgba(255,115,30,.85)';x.lineWidth=3;x.stroke()}
+    var last=trail[trail.length-1];if(last){var p=xy([last.x,last.y]),r=Math.max(5,last.w*v.videoWidth*scale*.65);x.beginPath();x.arc(p[0],p[1],r,0,Math.PI*2);x.strokeStyle='#ffb020';x.lineWidth=2.5;x.stroke();x.fillStyle='rgba(255,176,32,.18)';x.fill()}
+    if(co.hoop){var q=xy([co.hoop.x,co.hoop.y]),hr=co.hoop.r*v.videoWidth*scale;x.beginPath();x.ellipse(q[0],q[1],hr,hr*.48,0,0,Math.PI*2);x.strokeStyle='#39ff14';x.lineWidth=2.5;x.stroke()}
+  };
+
+  window.toggleHoopCalibration=function(){
+    co.calibratingHoop=!co.calibratingHoop;
+    var c=$('#ballOverlay');if(c){c.style.pointerEvents=co.calibratingHoop?'auto':'none';c.style.cursor=co.calibratingHoop?'crosshair':'default'}
+    window.cr();
+  };
+
+  window.calibTap=function(e){
+    if(!co.calibratingHoop)return;
+    var c=e.currentTarget,v=$('#cvid');if(!v||!v.videoWidth)return;
+    var rect=c.getBoundingClientRect(),w=c.clientWidth,h=c.clientHeight,scale=Math.min(w/v.videoWidth,h/v.videoHeight),ox=(w-v.videoWidth*scale)/2,oy=(h-v.videoHeight*scale)/2;
+    var nx=(e.clientX-rect.left-ox)/(v.videoWidth*scale),ny=(e.clientY-rect.top-oy)/(v.videoHeight*scale);
+    if(nx<0||nx>1||ny<0||ny>1)return;
+    co.hoop={x:nx,y:ny,r:co.hoop?co.hoop.r:.035};co.calibratingHoop=false;
+    c.style.pointerEvents='none';c.style.cursor='default';refreshHoopEstimates();window.cr();
+  };
+
+  window.setHoopRadius=function(value){
+    if(!co.hoop)return;
+    co.hoop.r=Math.max(.015,Math.min(.12,+value/100));refreshHoopEstimates();
+    var label=$('#hoopRadiusValue');if(label)label.textContent=Math.round(co.hoop.r*100)+'%';
+  };
+
+  function refreshHoopEstimates(){
+    (co.shots||[]).forEach(function(s){s.estimate=estimateHoopOutcome(s)});
+  }
+
+  function estimateHoopOutcome(shot){
+    if(!co.hoop||!co.balls||co.balls.length<3)return null;
+    var points=co.balls.filter(function(b){return b.t>=shot.t-.15&&b.t<=shot.t+3});
+    for(var i=1;i<points.length;i++){
+      var a=points[i-1],b=points[i];
+      if(a.y<co.hoop.y&&b.y>=co.hoop.y&&b.y>a.y){
+        var f=(co.hoop.y-a.y)/Math.max(.0001,b.y-a.y),crossX=a.x+(b.x-a.x)*f,dx=Math.abs(crossX-co.hoop.x),r=co.hoop.r;
+        if(dx<=r*1.05)return{out:'m',label:'Likely make',confidence:Math.min(.9,.58+(b.score||0)*.3)};
+        if(dx<=r*3.3)return{out:'x',label:'Likely miss',confidence:Math.min(.82,.48+(b.score||0)*.3)};
+        return null;
+      }
+    }
+    return null;
+  }
+
+  window.run=async function(){
+    co.st='run';co.prog=0;co.msg='Loading the improved pose model and basketball detector...';co.shots=[];co.find=[];co.FR=[];co.balls=[];co.hoop=null;co.ballFrames=0;co.trackingWarning='';window.cr();
+    var pose=null,detector=null,video=document.createElement('video');
+    try{
+      video.muted=true;video.playsInline=true;video.preload='auto';video.src=co.url;
+      await new Promise(function(resolve,reject){video.onloadeddata=resolve;video.onerror=function(){reject(new Error('This video could not be read. Try an MP4 (H.264) file.'))}});
+      if(video.duration>90)throw new Error('This video is longer than 90 seconds. Trim it and try again.');
+      var vision=await import(CDN+'vision_bundle.mjs'),files=await vision.FilesetResolver.forVisionTasks(CDN+'wasm');
+      var makePose=function(delegate){return vision.PoseLandmarker.createFromOptions(files,{baseOptions:{modelAssetPath:POSE_FULL,delegate:delegate},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.5,minPosePresenceConfidence:.5,minTrackingConfidence:.5})};
+      try{pose=await makePose('GPU')}catch(e){pose=await makePose('CPU')}
+      var makeDetector=function(delegate){return vision.ObjectDetector.createFromOptions(files,{baseOptions:{modelAssetPath:BALL_MODEL,delegate:delegate},runningMode:'VIDEO',scoreThreshold:.12,maxResults:5,categoryAllowlist:['sports ball']})};
+      try{detector=await makeDetector('GPU')}catch(e){try{detector=await makeDetector('CPU')}catch(e2){co.trackingWarning='The ball detector could not load on this device. Form analysis will still run.'}}
+      var interval=1/8,total=Math.max(1,Math.floor(video.duration/interval)),frames=[],tracks=[],last=null,previous=null;
+      co.asp=video.videoWidth/video.videoHeight;co.dt=interval;
+      for(var i=0;i<total;i++){
+        var time=Math.min(video.duration-.001,i*interval);
+        await new Promise(function(resolve,reject){
+          var done=false;
+          function finish(){if(done)return;done=true;video.removeEventListener('seeked',finish);video.removeEventListener('error',fail);resolve()}
+          function fail(){if(done)return;done=true;reject(new Error('The video could not be decoded near '+mmss(time)+'.'))}
+          video.addEventListener('seeked',finish,{once:true});video.addEventListener('error',fail,{once:true});video.currentTime=time;if(Math.abs(video.currentTime-time)<.0005)finish();
+        });
+        var stamp=Math.round(time*1000)+1,result=pose.detectForVideo(video,stamp);
+        frames.push(result.landmarks&&result.landmarks[0]?result.landmarks[0].map(function(p){return[p.x,p.y,p.visibility]}):null);
+        if(detector&&i%2===0){
+          var detections=detector.detectForVideo(video,stamp).detections||[],choices=[];
+          detections.forEach(function(d){
+            var cat=(d.categories||[]).find(function(c){return String(c.categoryName||c.displayName||'').toLowerCase()==='sports ball'}),box=d.boundingBox;
+            if(cat&&box)choices.push({x:(box.originX+box.width/2)/video.videoWidth,y:(box.originY+box.height/2)/video.videoHeight,w:box.width/video.videoWidth,h:box.height/video.videoHeight,score:cat.score||0,t:time});
+          });
+          var selected=null;
+          if(choices.length){
+            if(last&&time-last.t<.7){
+              var vx=previous?(last.x-previous.x)/Math.max(.001,last.t-previous.t):0,vy=previous?(last.y-previous.y)/Math.max(.001,last.t-previous.t):0;
+              var px=last.x+vx*(time-last.t),py=last.y+vy*(time-last.t);
+              choices.sort(function(a,b){return Math.hypot(a.x-px,a.y-py)-Math.hypot(b.x-px,b.y-py)});
+              var close=choices[0],gate=Math.min(.32,.1+Math.hypot(vx,vy)*(time-last.t)*1.8);
+              if(Math.hypot(close.x-px,close.y-py)<gate)selected=close;
+              else if(close.score>.55&&time-last.t>.35)selected=close;
+            }else{choices.sort(function(a,b){return b.score-a.score});selected=choices[0]}
+          }
+          if(selected){previous=last;last=selected;tracks.push(selected)}
+          else if(last&&time-last.t>.7){last=null;previous=null}
+        }
+        co.prog=(i+1)/total;co.msg='Analysing body and following the ball · '+(i+1)+' / '+total+' frames';co.FR=frames;co.balls=tracks;
+        if(i%3===0)window.cr();
+      }
+      pose.close();pose=null;if(detector){detector.close();detector=null}
+      co.FR=frames;co.balls=tracks;co.ballFrames=tracks.length;analyse();refreshHoopEstimates();co.st='done';co.sel=-1;
+      if(!tracks.length)co.trackingWarning=co.trackingWarning||'No basketball detections were found. The ball may be too small, blurred, hidden or outside the frame.';
+      else if(tracks.length<8)co.trackingWarning='Only a short ball trail was detected. Keep the ball larger and unobstructed for stronger tracking.';
+      co.msg='Analysis complete.';
+    }catch(e){try{if(pose)pose.close();if(detector)detector.close()}catch(ignore){}co.st='err';co.msg=e&&e.message?e.message:'The analysis failed. Try an MP4 or MOV file.'}
+    window.cr();
+  };
+
+  window.cr=function(){
+    oldCr();
+    var root=$('#cr');if(!root||co.st!=='done')return;
+    var card=document.createElement('div');card.className='card';
+    var html='<h2>Ball tracking + hoop estimates</h2><div class="hint" style="text-align:left">'+(co.balls||[]).length+' ball positions tracked. Orange markers and a short trail appear over the video. The detector can miss a small or blurred ball.</div>';
+    if(co.trackingWarning)html+='<div class="hint" style="text-align:left;color:#ffb020">'+esc(co.trackingWarning)+'</div>';
+    html+='<div class="hint" style="text-align:left;margin:8px 0">Pause the video on a clear frame, then select the rim centre. ZERO can estimate a likely make/miss when the tracked ball crosses that line.</div>';
+    html+='<button class="btn '+(co.hoop?'on':'')+'" style="width:100%" onclick="toggleHoopCalibration()">'+(co.calibratingHoop?'Tap rim centre in video above':co.hoop?'Recalibrate rim centre':'Select rim centre in video')+'</button>';
+    if(co.hoop)html+='<div class="hint">Rim radius: <b id="hoopRadiusValue">'+Math.round(co.hoop.r*100)+'%</b><input type="range" min="2" max="12" step=".5" value="'+co.hoop.r*100+'" oninput="setHoopRadius(this.value)" style="padding:0;margin:8px 0"></div>';
+    var estimates=(co.shots||[]).map(function(s,i){return s.estimate?'<div class="row" style="justify-content:space-between;margin-top:6px"><span>'+mmss(s.t)+' · '+s.estimate.label+' ('+Math.round(s.estimate.confidence*100)+'%)</span><button class="btn" onclick="csel('+i+');cout(\''+s.estimate.out+'\')">Use suggestion</button></div>':''}).join('');
+    if(estimates)html+='<div style="border-top:1px solid var(--ln);margin-top:9px;padding-top:8px"><b>Review these suggestions</b>'+estimates+'</div>';
+    html+='<div class="hint" style="text-align:left;margin-top:8px">These are estimates, not confirmed results. Review the clip and use the existing make/miss buttons to confirm. A shot is only saved to your chart after you tap its court location.</div>';
+    card.innerHTML=html;root.appendChild(card);
+    var overlay=$('#ballOverlay');if(overlay){overlay.style.pointerEvents=co.calibratingHoop?'auto':'none';overlay.style.cursor=co.calibratingHoop?'crosshair':'default'}
+  };
+})();
+
+</script>
+</body></html>
