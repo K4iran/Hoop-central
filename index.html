@@ -269,8 +269,90 @@ render();if(!S.p.name)prof();
   var POSE_FULL='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
   var BALL_MODEL='https://storage.googleapis.com/mediapipe-tasks/object_detector/efficientdet_lite0_uint8.tflite';
   var ballRaf=0,oldCfile=window.cfile,oldCr=window.cr,oldCoach=PG.coach;
+  var hoopOrtPromise=null,hoopSessionPromise=null,hoopSession=null,hoopMetaPromise=null;
+  var HOOP_MODEL_SIZE=704,HOOP_ORT_VERSION='1.20.1';
 
-  window.cfile=function(inp){var f=inp&&inp.files&&inp.files[0];if(!f)return;if(co.url)URL.revokeObjectURL(co.url);var accepted=(f.type&&f.type.indexOf('video/')===0)||/\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(f.name||''),url=accepted?URL.createObjectURL(f):'';co={st:accepted?'checking':'err',shots:[],FR:[],find:[],sel:-1,msg:accepted?'Checking that this browser can decode the recording...':'That file does not look like a supported video. Choose MP4, MOV or WebM.',prog:0,cons:'',url:url,balls:[],hoop:null,calibratingHoop:false,trackingWarning:'',ballFrames:0,offset:0,activeSegment:0,cutTimes:[],cutSummary:null,videoInfo:{status:accepted?'checking':'error',name:f.name||'Video file',type:f.type||'Not reported',size:(f.size/1048576).toFixed(1)+' MB',reason:'Checking the first decoded frame.'}};if(inp)inp.value='';render();if(!accepted)return;var probe=document.createElement('video'),done=false;probe.muted=true;probe.playsInline=true;probe.preload='auto';function cleanup(){probe.removeEventListener('loadeddata',loaded);probe.removeEventListener('error',failed);probe.removeAttribute('src');try{probe.load()}catch(ignore){}}function finishError(message){if(done)return;done=true;clearTimeout(timer);cleanup();if(co.url!==url)return;co.st='err';co.msg=message;co.videoInfo.status='error';co.videoInfo.reason=message;window.cr()}function loaded(){if(done)return;var duration=probe.duration,width=probe.videoWidth,height=probe.videoHeight;if(!Number.isFinite(duration)||duration<=0){finishError('The video opened, but its duration could not be read. Re-export as MP4 (H.264/AVC).');return}if(!width||!height){finishError('The browser could not decode a usable video frame. Try MP4 with H.264/AVC video and AAC audio.');return}if(duration>90){finishError('This recording is '+mmss(duration)+' long. The coach currently analyses videos up to 90 seconds; trim the clip and try again.');return}done=true;clearTimeout(timer);cleanup();if(co.url!==url)return;co.st='ready';co.msg='';co.videoInfo.status='ready';co.videoInfo.resolution=width+' × '+height;co.videoInfo.duration=mmss(duration);co.videoInfo.reason='The browser decoded the first frame successfully. This does not guarantee every frame in the file is decodable.';if(f.size>250*1024*1024)co.videoInfo.warning='Large file: analysis may be slower and use more phone memory.';window.cr()}function failed(){var code=probe.error?probe.error.code:0;var detail=code===3?'The browser found the video but could not decode its video stream. An unsupported codec or profile, including some HEVC/H.265 recordings, is a common cause.':code===4?'The browser does not support this file/container or its declared media type.':code===2?'The browser could not read the local video data. The file may be damaged or unavailable.':'The browser could not open this video file.';finishError(detail+' MP4 is a container, not a codec. Re-export as MP4 with H.264/AVC video and AAC audio, then try again.')}probe.addEventListener('loadeddata',loaded);probe.addEventListener('error',failed);var timer=setTimeout(function(){finishError('The browser did not decode the first frame in time. Try exporting MP4 (H.264/AVC) at 1080p or lower.')},18000);probe.src=url;probe.load()};window.vErr=function(){var message='The video player could not decode this recording. A file ending in .mp4 can still contain HEVC/H.265 video, which some browsers cannot play. Try MP4 with H.264/AVC video and AAC audio.';co.st='err';co.msg=message;if(co.videoInfo){co.videoInfo.status='error';co.videoInfo.reason=message}window.cr()};
+  function ensureHoopOrt(){
+    if(window.ort)return Promise.resolve(window.ort);
+    if(hoopOrtPromise)return hoopOrtPromise;
+    hoopOrtPromise=new Promise(function(resolve,reject){
+      var script=document.createElement('script');
+      script.src='https://cdn.jsdelivr.net/npm/onnxruntime-web@'+HOOP_ORT_VERSION+'/dist/ort.min.js';
+      script.onload=function(){
+        if(!window.ort){reject(new Error('The ONNX browser runtime did not initialise.'));return}
+        window.ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@'+HOOP_ORT_VERSION+'/dist/';
+        window.ort.env.wasm.numThreads=1;
+        resolve(window.ort);
+      };
+      script.onerror=function(){hoopOrtPromise=null;reject(new Error('Could not load the browser AI runtime. Check your connection and retry.'))};
+      document.head.appendChild(script);
+    });
+    return hoopOrtPromise;
+  }
+
+  async function getHoopSession(){
+    if(hoopSession)return hoopSession;
+    if(hoopSessionPromise)return hoopSessionPromise;
+    hoopSessionPromise=(async function(){
+      var ort=await ensureHoopOrt();
+      if(!hoopMetaPromise)hoopMetaPromise=fetch(new URL('models/ebard-hoop.json',document.baseURI).href,{cache:'force-cache'}).then(function(r){if(!r.ok)throw new Error('The hoop model package is not published yet.');return r.json()});
+      var meta=await hoopMetaPromise;
+      if(!Number.isInteger(meta.hoopClassId)||meta.inputSize!==HOOP_MODEL_SIZE)throw new Error('The hoop model metadata is invalid.');
+      var url=new URL('models/ebard-hoop.onnx',document.baseURI).href;
+      var session=await ort.InferenceSession.create(url,{executionProviders:['wasm'],graphOptimizationLevel:'all'});
+      session.hoopClassId=meta.hoopClassId;
+      hoopSession=session;
+      return session;
+    })().catch(function(e){hoopSessionPromise=null;throw e});
+    return hoopSessionPromise;
+  }
+
+  function hoopIoU(a,b){
+    var x1=Math.max(a.x1,b.x1),y1=Math.max(a.y1,b.y1),x2=Math.min(a.x2,b.x2),y2=Math.min(a.y2,b.y2);
+    var inter=Math.max(0,x2-x1)*Math.max(0,y2-y1),aa=Math.max(0,a.x2-a.x1)*Math.max(0,a.y2-a.y1),bb=Math.max(0,b.x2-b.x1)*Math.max(0,b.y2-b.y1);
+    return inter/Math.max(1e-8,aa+bb-inter);
+  }
+
+  async function detectHoopInFrame(video){
+    var session=await getHoopSession(),size=HOOP_MODEL_SIZE,canvas=document.createElement('canvas');
+    canvas.width=size;canvas.height=size;
+    var ctx=canvas.getContext('2d',{willReadFrequently:true});
+    ctx.fillStyle='rgb(114,114,114)';ctx.fillRect(0,0,size,size);
+    var scale=Math.min(size/video.videoWidth,size/video.videoHeight),dw=video.videoWidth*scale,dh=video.videoHeight*scale,px=(size-dw)/2,py=(size-dh)/2;
+    ctx.drawImage(video,px,py,dw,dh);
+    var pixels=ctx.getImageData(0,0,size,size).data,plane=size*size,input=new Float32Array(plane*3);
+    for(var y=0;y<size;y++)for(var x=0;x<size;x++){
+      var p=(y*size+x)*4,k=y*size+x;
+      input[k]=pixels[p]/255;input[plane+k]=pixels[p+1]/255;input[plane*2+k]=pixels[p+2]/255;
+    }
+    var tensor=new window.ort.Tensor('float32',input,[1,3,size,size]),feeds={};
+    feeds[session.inputNames[0]]=tensor;
+    var outputs=await session.run(feeds),result=outputs[session.outputNames[0]],dims=result.dims,data=result.data;
+    if(!dims||dims.length!==3)throw new Error('The hoop model returned an unexpected output shape.');
+    var channelFirst=dims[1]<dims[2],count=channelFirst?dims[2]:dims[1],channels=channelFirst?dims[1]:dims[2];
+    if(channels<8)throw new Error('The hoop model output did not contain the expected four classes.');
+    function val(ch,i){return channelFirst?data[ch*count+i]:data[i*channels+ch]}
+    var candidates=[],classId=session.hoopClassId;
+    for(var i=0;i<count;i++){
+      var score=val(4+classId,i);if(!Number.isFinite(score)||score<.2)continue;
+      var cx=val(0,i),cy=val(1,i),bw=val(2,i),bh=val(3,i);
+      if(!Number.isFinite(cx)||!Number.isFinite(cy)||!Number.isFinite(bw)||!Number.isFinite(bh))continue;
+      if(Math.max(Math.abs(cx),Math.abs(cy),Math.abs(bw),Math.abs(bh))<=2){cx*=size;cy*=size;bw*=size;bh*=size}
+      var x1=(cx-bw/2-px)/scale/video.videoWidth,y1=(cy-bh/2-py)/scale/video.videoHeight;
+      var x2=(cx+bw/2-px)/scale/video.videoWidth,y2=(cy+bh/2-py)/scale/video.videoHeight;
+      x1=Math.max(0,Math.min(1,x1));y1=Math.max(0,Math.min(1,y1));x2=Math.max(0,Math.min(1,x2));y2=Math.max(0,Math.min(1,y2));
+      if(x2<=x1||y2<=y1)continue;
+      candidates.push({x1:x1,y1:y1,x2:x2,y2:y2,score:score});
+    }
+    candidates.sort(function(a,b){return b.score-a.score});
+    var kept=[];
+    candidates.forEach(function(box){if(kept.every(function(other){return hoopIoU(box,other)<.45}))kept.push(box)});
+    if(!kept.length)return null;
+    var best=kept[0];
+    return{x:(best.x1+best.x2)/2,y:(best.y1+best.y2)/2,w:best.x2-best.x1,h:best.y2-best.y1,score:best.score};
+  }
+
+  window.cfile=function(inp){var f=inp&&inp.files&&inp.files[0];if(!f)return;if(co.url)URL.revokeObjectURL(co.url);var accepted=(f.type&&f.type.indexOf('video/')===0)||/\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(f.name||''),url=accepted?URL.createObjectURL(f):'';co={st:accepted?'checking':'err',shots:[],FR:[],find:[],sel:-1,msg:accepted?'Checking that this browser can decode the recording...':'That file does not look like a supported video. Choose MP4, MOV or WebM.',prog:0,cons:'',url:url,balls:[],hoop:null,hoopBox:null,hoopDetectStatus:'',calibratingHoop:false,trackingWarning:'',ballFrames:0,offset:0,activeSegment:0,cutTimes:[],cutSummary:null,videoInfo:{status:accepted?'checking':'error',name:f.name||'Video file',type:f.type||'Not reported',size:(f.size/1048576).toFixed(1)+' MB',reason:'Checking the first decoded frame.'}};if(inp)inp.value='';render();if(!accepted)return;var probe=document.createElement('video'),done=false;probe.muted=true;probe.playsInline=true;probe.preload='auto';function cleanup(){probe.removeEventListener('loadeddata',loaded);probe.removeEventListener('error',failed);probe.removeAttribute('src');try{probe.load()}catch(ignore){}}function finishError(message){if(done)return;done=true;clearTimeout(timer);cleanup();if(co.url!==url)return;co.st='err';co.msg=message;co.videoInfo.status='error';co.videoInfo.reason=message;window.cr()}function loaded(){if(done)return;var duration=probe.duration,width=probe.videoWidth,height=probe.videoHeight;if(!Number.isFinite(duration)||duration<=0){finishError('The video opened, but its duration could not be read. Re-export as MP4 (H.264/AVC).');return}if(!width||!height){finishError('The browser could not decode a usable video frame. Try MP4 with H.264/AVC video and AAC audio.');return}if(duration>90){finishError('This recording is '+mmss(duration)+' long. The coach currently analyses videos up to 90 seconds; trim the clip and try again.');return}done=true;clearTimeout(timer);cleanup();if(co.url!==url)return;co.st='ready';co.msg='';co.videoInfo.status='ready';co.videoInfo.resolution=width+' × '+height;co.videoInfo.duration=mmss(duration);co.videoInfo.reason='The browser decoded the first frame successfully. This does not guarantee every frame in the file is decodable.';if(f.size>250*1024*1024)co.videoInfo.warning='Large file: analysis may be slower and use more phone memory.';window.cr()}function failed(){var code=probe.error?probe.error.code:0;var detail=code===3?'The browser found the video but could not decode its video stream. An unsupported codec or profile, including some HEVC/H.265 recordings, is a common cause.':code===4?'The browser does not support this file/container or its declared media type.':code===2?'The browser could not read the local video data. The file may be damaged or unavailable.':'The browser could not open this video file.';finishError(detail+' MP4 is a container, not a codec. Re-export as MP4 with H.264/AVC video and AAC audio, then try again.')}probe.addEventListener('loadeddata',loaded);probe.addEventListener('error',failed);var timer=setTimeout(function(){finishError('The browser did not decode the first frame in time. Try exporting MP4 (H.264/AVC) at 1080p or lower.')},18000);probe.src=url;probe.load()};window.vErr=function(){var message='The video player could not decode this recording. A file ending in .mp4 can still contain HEVC/H.265 video, which some browsers cannot play. Try MP4 with H.264/AVC video and AAC audio.';co.st='err';co.msg=message;if(co.videoInfo){co.videoInfo.status='error';co.videoInfo.reason=message}window.cr()};
   
 
   PG.coach=function(){var html=oldCoach();setTimeout(ensureBallOverlay,80);return html};
@@ -294,7 +376,30 @@ render();if(!S.p.name)prof();
     var trail=(co.balls||[]).filter(function(b){return b.segment===currentSegment&&b.t<=v.currentTime&&v.currentTime-b.t<1.3});
     if(trail.length>1){x.beginPath();trail.forEach(function(b,i){var p=xy([b.x,b.y]);if(i===0)x.moveTo(p[0],p[1]);else x.lineTo(p[0],p[1])});x.strokeStyle='rgba(255,115,30,.85)';x.lineWidth=3;x.stroke()}
     var last=trail[trail.length-1];if(last){var p=xy([last.x,last.y]),r=Math.max(5,last.w*v.videoWidth*scale*.65);x.beginPath();x.arc(p[0],p[1],r,0,Math.PI*2);x.strokeStyle='#ffb020';x.lineWidth=2.5;x.stroke();x.fillStyle='rgba(255,176,32,.18)';x.fill()}
+    if(co.hoopBox&&Math.abs(v.currentTime-co.hoopBox.t)<1.2){
+      var hb=co.hoopBox,tl=xy([hb.x-hb.w/2,hb.y-hb.h/2]),br=xy([hb.x+hb.w/2,hb.y+hb.h/2]);
+      x.strokeStyle='#48d9ff';x.lineWidth=2.5;x.setLineDash([7,4]);x.strokeRect(tl[0],tl[1],br[0]-tl[0],br[1]-tl[1]);x.setLineDash([]);
+      x.fillStyle='#48d9ff';x.font='bold 12px system-ui';x.fillText('AI HOOP '+Math.round(hb.score*100)+'%',tl[0],Math.max(14,tl[1]-6));
+    }
     if(co.hoop){var q=xy([co.hoop.x,co.hoop.y]),hr=co.hoop.r*v.videoWidth*scale;x.beginPath();x.ellipse(q[0],q[1],hr,hr*.48,0,0,Math.PI*2);x.strokeStyle='#39ff14';x.lineWidth=2.5;x.stroke()}
+  };
+
+  window.autoDetectHoop=async function(){
+    var v=$('#cvid');
+    if(!v||!v.videoWidth||v.readyState<2){co.hoopDetectStatus='Wait for the video to finish loading, then try again.';window.cr();return}
+    v.pause();co.hoopDetectStatus='Loading the hoop detector. First use downloads the model to this device...';window.cr();
+    try{
+      var found=await detectHoopInFrame(v);
+      if(!found){co.hoopBox=null;co.hoopDetectStatus='No clear hoop found in this frame. Pause on a frame where the hoop is larger and unobstructed, or use manual rim calibration.';window.cr();return}
+      found.t=v.currentTime;co.hoopBox=found;co.calibratingHoop=true;
+      var overlay=$('#ballOverlay');if(overlay){overlay.style.pointerEvents='auto';overlay.style.cursor='crosshair'}
+      co.hoopDetectStatus='Hoop region found ('+Math.round(found.score*100)+'% model score). Tap the exact centre of the rim in the highlighted box to finish calibration.';
+    }catch(e){
+      var message=e&&e.message?e.message:'Hoop detection could not run.';
+      if(/not published|404|failed to fetch/i.test(message))message='The browser model has not finished publishing yet. Manual rim calibration is still available.';
+      co.hoopDetectStatus=message;
+    }
+    window.cr();
   };
 
   window.toggleHoopCalibration=function(){
@@ -309,7 +414,7 @@ render();if(!S.p.name)prof();
     var rect=c.getBoundingClientRect(),w=c.clientWidth,h=c.clientHeight,scale=Math.min(w/v.videoWidth,h/v.videoHeight),ox=(w-v.videoWidth*scale)/2,oy=(h-v.videoHeight*scale)/2;
     var nx=(e.clientX-rect.left-ox)/(v.videoWidth*scale),ny=(e.clientY-rect.top-oy)/(v.videoHeight*scale);
     if(nx<0||nx>1||ny<0||ny>1)return;
-    co.hoop={x:nx,y:ny,r:co.hoop?co.hoop.r:.035};co.calibratingHoop=false;
+    co.hoop={x:nx,y:ny,r:co.hoop?co.hoop.r:.035};co.calibratingHoop=false;co.hoopDetectStatus='Rim centre confirmed. Review the overlay and shot suggestions.';
     c.style.pointerEvents='none';c.style.cursor='default';refreshHoopEstimates();window.cr();
   };
 
@@ -526,11 +631,13 @@ window.cr()};
     if(co.cutSummary)html+='<div class="hint" style="text-align:left">Camera sections: '+co.cutSummary.sections+' · Possible angle changes: '+co.cutSummary.changes+' · Sections with shots: '+co.cutSummary.sectionsWithShots+' · Skipped short/unusable: '+co.cutSummary.skipped+'.</div>';
     if(co.trackingWarning)html+='<div class="hint" style="text-align:left;color:#ffb020">'+esc(co.trackingWarning)+'</div>';
     html+='<div class="hint" style="text-align:left;margin:8px 0">Pause the video on a clear frame, then select the rim centre. The coach can estimate a likely make or miss when a tracked ball crosses that line. Review every suggestion before saving it.</div>';
-    html+='<button class="btn '+(co.hoop?'on':'')+'" style="width:100%" onclick="toggleHoopCalibration()">'+(co.calibratingHoop?'Tap rim centre in video above':co.hoop?'Recalibrate rim centre':'Select rim centre in video')+'</button>';
+    html+='<button class="btn on" style="width:100%;margin-bottom:7px" onclick="autoDetectHoop()">✦ Find hoop automatically</button>';
+    if(co.hoopDetectStatus)html+='<div class="hint" style="text-align:left;color:#48d9ff;margin:4px 0 8px">'+esc(co.hoopDetectStatus)+'</div>';
+    html+='<button class="btn '+(co.hoop?'on':'')+'" style="width:100%" onclick="toggleHoopCalibration()">'+(co.calibratingHoop?'Tap rim centre in video above':co.hoop?'Recalibrate rim centre manually':'Select rim centre manually')+'</button>';
     if(co.hoop)html+='<div class="hint">Rim radius: <b id="hoopRadiusValue">'+Math.round(co.hoop.r*100)+'%</b><input type="range" min="2" max="12" step=".5" value="'+co.hoop.r*100+'" oninput="setHoopRadius(this.value)" style="padding:0;margin:8px 0"></div>';
     var estimates=(co.shots||[]).map(function(s,i){var status=s.estimate?'<span>'+s.estimate.label+' ('+Math.round(s.estimate.confidence*100)+'%)</span><button class="btn" onclick="csel('+i+');cout(&quot;'+s.estimate.out+'&quot;)">Review suggestion</button>':'<span style="color:#ffb020">Uncertain</span>';var reason=s.estimateReason?'<div class="hint" style="text-align:left">'+esc(s.estimateReason)+'</div>':'';return '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--ln)"><div class="row" style="justify-content:space-between"><b>'+mmss(s.t)+'</b>'+status+'</div>'+reason+'</div>'}).join('');
     if(estimates)html+='<div style="border-top:1px solid var(--ln);margin-top:9px;padding-top:8px"><b>Shot-by-shot tracking confidence</b>'+estimates+'</div>';
-    html+='<div class="hint" style="text-align:left;margin-top:8px">The current vision model is trained to recognise sports balls, not basketball hoops. It cannot reliably identify a backboard, rim or net automatically. For now, pause on a clear frame with the hoop visible, mark the centre of the rim, and adjust its radius. A shooting-machine net can hide the ball or distort the rim area. Confirm every suggested result manually; only save a shot after reviewing it and selecting its court location.</div>';
+    html+='<div class="hint" style="text-align:left;margin-top:8px">The optional E-BARD detector locates the hoop region automatically, but it does not separately detect the backboard, rim or net. Tap the exact rim centre inside the highlighted box before using make/miss estimates. It was trained mainly on broadcast footage, so practice-court angles may be harder. Manual calibration remains available. A shooting-machine net can still hide the ball. Confirm every suggested result manually; only save a shot after reviewing it and selecting its court location.</div>';
     card.innerHTML=html;root.appendChild(card);
     var overlay=$('#ballOverlay');if(overlay){overlay.style.pointerEvents=co.calibratingHoop?'auto':'none';overlay.style.cursor=co.calibratingHoop?'crosshair':'default'}
   };
