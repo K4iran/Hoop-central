@@ -399,8 +399,8 @@ render();if(!S.p.name)prof();
     v.pause();co.hoopDetectStatus='Loading the hoop detector. First use downloads the model to this device...';window.cr();
     try{
       var found=await detectHoopInFrame(v);
-      if(!found){co.hoopBox=null;co.hoopDetectStatus='No clear hoop found in this frame. Pause on a frame where the hoop is larger and unobstructed, or use manual rim calibration.';window.cr();return}
-      found.t=v.currentTime;co.hoopBox=found;co.calibratingHoop=true;
+      if(!found){co.hoopBox=null;co.hoops=co.hoops||[];co.hoops.push({t:v.currentTime,segment:(co.cutTimes||[]).filter(function(t){return t<=v.currentTime}).length,found:false,box:null});co.hoopDetectStatus='No clear hoop found in this frame. Pause on a frame where the hoop is larger and unobstructed, or use manual rim calibration.';window.cr();return}
+      found.t=v.currentTime;co.hoopBox=found;co.hoops=co.hoops||[];co.hoops.push({t:v.currentTime,segment:(co.cutTimes||[]).filter(function(t){return t<=v.currentTime}).length,found:true,box:found});co.calibratingHoop=true;
       var overlay=$('#ballOverlay');if(overlay){overlay.style.pointerEvents='auto';overlay.style.cursor='crosshair'}
       co.hoopDetectStatus='Hoop region found ('+Math.round(found.score*100)+'% model score). Tap the exact centre of the rim in the highlighted box to finish calibration.';
     }catch(e){
