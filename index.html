@@ -210,7 +210,7 @@ const CDN='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/',MODEL=
 function coachPg(){setTimeout(()=>{cr();loop()},0);return `<button class="btn" onclick="go('court')">← Back to court</button><h2 style="font-size:22px;margin:10px 0 4px">AI Shooting Coach</h2><div class="hint" style="text-align:left">Pose estimation runs on your phone with MediaPipe. Your video is not uploaded anywhere.</div>${co.url?`<div style="position:relative;margin-bottom:8px"><video id="cvid" src="${co.url}" controls playsinline style="width:100%;max-height:50dvh;display:block;background:#000;border-radius:12px" onerror="vErr()"></video><canvas id="cvs" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas></div>`:''}<div id="cr"></div>`}
 function vErr(){co.st='err';co.msg='Your browser could not play this video. Try an MP4 (H.264) file.';cr()}
 function cfile(inp){const f=inp.files[0];if(!f)return;if(co.url)URL.revokeObjectURL(co.url);const ok=f.type.startsWith('video/')||/\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(f.name);co={shots:[],FR:[],find:[],sel:-1,prog:0,cons:'',url:ok?URL.createObjectURL(f):'',st:ok?'ready':'err',msg:ok?'':'That file is not a video. Choose an MP4, MOV or WebM file.'};render()}
-function loop(){cancelAnimationFrame(raf);const v=$('#cvid'),c=$('#cvs');if(!v||!c)return;raf=requestAnimationFrame(loop);const w=c.clientWidth,h=c.clientHeight;if(c.width!=w||c.height!=h){c.width=w;c.height=h}const x=c.getContext('2d');x.clearRect(0,0,w,h);if(!co.FR.length||!v.videoWidth)return;const f=co.FR[Math.min(co.FR.length-1,Math.round(v.currentTime/co.dt))];if(!f)return;const sc=Math.min(w/v.videoWidth,h/v.videoHeight),ox=(w-v.videoWidth*sc)/2,oy=(h-v.videoHeight*sc)/2,q=i=>[ox+f[i][0]*v.videoWidth*sc,oy+f[i][1]*v.videoHeight*sc];x.lineWidth=3;x.strokeStyle='#ff7a1a';x.fillStyle='#fff';x.beginPath();[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28]].forEach(([a,b])=>{const p=q(a),z=q(b);x.moveTo(p[0],p[1]);x.lineTo(z[0],z[1])});x.stroke();[0,11,12,13,14,15,16,23,24,25,26,27,28].forEach(i=>{const p=q(i);x.beginPath();x.arc(p[0],p[1],4,0,7);x.fill()})}
+function loop(){cancelAnimationFrame(raf);const v=$('#cvid'),c=$('#cvs');if(!v||!c)return;raf=requestAnimationFrame(loop);const w=c.clientWidth,h=c.clientHeight;if(c.width!=w||c.height!=h){c.width=w;c.height=h}const x=c.getContext('2d');x.clearRect(0,0,w,h);if(!co.FR.length||!v.videoWidth)return;const f=co.FR[Math.min(co.FR.length-1,Math.round(v.currentTime/co.dt))];if(!f)return;const sc=Math.min(w/v.videoWidth,h/v.videoHeight),ox=(w-v.videoWidth*sc)/2,oy=(h-v.videoHeight*sc)/2,q=i=>[ox+f[i][0]*v.videoWidth*sc,oy+f[i][1]*v.videoHeight*sc];x.lineWidth=3;x.strokeStyle='#ff7a1a';x.fillStyle='#fff';const pt=i=>f[i]&&Number.isFinite(f[i][0])&&Number.isFinite(f[i][1])?[ox+f[i][0]*v.videoWidth*sc,oy+f[i][1]*v.videoHeight*sc]:null;x.beginPath();[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28],[27,29],[29,31],[28,30],[30,32]].forEach(([a,b])=>{const p=pt(a),z=pt(b);if(p&&z){x.moveTo(p[0],p[1]);x.lineTo(z[0],z[1])}});x.stroke();[0,11,12,13,14,15,16,23,24,25,26,27,28,29,30,31,32].forEach(i=>{const p=pt(i);if(!p)return;x.beginPath();x.arc(p[0],p[1],i>=27?4.8:4,0,Math.PI*2);x.fill()})}
 async function run(){co.st='run';co.prog=0;co.msg='Loading the pose model (first time needs internet)...';co.shots=[];co.find=[];co.FR=[];cr();
 try{const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=co.url;
 await new Promise((a,b)=>{v.onloadeddata=a;v.onerror=()=>b(new Error('This video could not be read. Try an MP4 (H.264) file.'))});
@@ -352,7 +352,7 @@ render();if(!S.p.name)prof();
     return{x:(best.x1+best.x2)/2,y:(best.y1+best.y2)/2,w:best.x2-best.x1,h:best.y2-best.y1,score:best.score};
   }
 
-  window.cfile=function(inp){var f=inp&&inp.files&&inp.files[0];if(!f)return;if(co.url)URL.revokeObjectURL(co.url);var accepted=(f.type&&f.type.indexOf('video/')===0)||/\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(f.name||''),url=accepted?URL.createObjectURL(f):'';co={st:accepted?'checking':'err',shots:[],FR:[],find:[],sel:-1,msg:accepted?'Checking that this browser can decode the recording...':'That file does not look like a supported video. Choose MP4, MOV or WebM.',prog:0,cons:'',url:url,balls:[],hoop:null,hoopBox:null,hoopDetectStatus:'',calibratingHoop:false,trackingWarning:'',ballFrames:0,offset:0,activeSegment:0,cutTimes:[],cutSummary:null,videoInfo:{status:accepted?'checking':'error',name:f.name||'Video file',type:f.type||'Not reported',size:(f.size/1048576).toFixed(1)+' MB',reason:'Checking the first decoded frame.'}};if(inp)inp.value='';render();if(!accepted)return;var probe=document.createElement('video'),done=false;probe.muted=true;probe.playsInline=true;probe.preload='auto';function cleanup(){probe.removeEventListener('loadeddata',loaded);probe.removeEventListener('error',failed);probe.removeAttribute('src');try{probe.load()}catch(ignore){}}function finishError(message){if(done)return;done=true;clearTimeout(timer);cleanup();if(co.url!==url)return;co.st='err';co.msg=message;co.videoInfo.status='error';co.videoInfo.reason=message;window.cr()}function loaded(){if(done)return;var duration=probe.duration,width=probe.videoWidth,height=probe.videoHeight;if(!Number.isFinite(duration)||duration<=0){finishError('The video opened, but its duration could not be read. Re-export as MP4 (H.264/AVC).');return}if(!width||!height){finishError('The browser could not decode a usable video frame. Try MP4 with H.264/AVC video and AAC audio.');return}if(duration>90){finishError('This recording is '+mmss(duration)+' long. The coach currently analyses videos up to 90 seconds; trim the clip and try again.');return}done=true;clearTimeout(timer);cleanup();if(co.url!==url)return;co.st='ready';co.msg='';co.videoInfo.status='ready';co.videoInfo.resolution=width+' × '+height;co.videoInfo.duration=mmss(duration);co.videoInfo.reason='The browser decoded the first frame successfully. This does not guarantee every frame in the file is decodable.';if(f.size>250*1024*1024)co.videoInfo.warning='Large file: analysis may be slower and use more phone memory.';window.cr()}function failed(){var code=probe.error?probe.error.code:0;var detail=code===3?'The browser found the video but could not decode its video stream. An unsupported codec or profile, including some HEVC/H.265 recordings, is a common cause.':code===4?'The browser does not support this file/container or its declared media type.':code===2?'The browser could not read the local video data. The file may be damaged or unavailable.':'The browser could not open this video file.';finishError(detail+' MP4 is a container, not a codec. Re-export as MP4 with H.264/AVC video and AAC audio, then try again.')}probe.addEventListener('loadeddata',loaded);probe.addEventListener('error',failed);var timer=setTimeout(function(){finishError('The browser did not decode the first frame in time. Try exporting MP4 (H.264/AVC) at 1080p or lower.')},18000);probe.src=url;probe.load()};window.vErr=function(){var message='The video player could not decode this recording. A file ending in .mp4 can still contain HEVC/H.265 video, which some browsers cannot play. Try MP4 with H.264/AVC video and AAC audio.';co.st='err';co.msg=message;if(co.videoInfo){co.videoInfo.status='error';co.videoInfo.reason=message}window.cr()};
+  window.cfile=function(inp){var f=inp&&inp.files&&inp.files[0];if(!f)return;if(co.url)URL.revokeObjectURL(co.url);var accepted=(f.type&&f.type.indexOf('video/')===0)||/\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(f.name||''),url=accepted?URL.createObjectURL(f):'';co={st:accepted?'checking':'err',shots:[],FR:[],find:[],sel:-1,msg:accepted?'Checking that this browser can decode the recording...':'That file does not look like a supported video. Choose MP4, MOV or WebM.',prog:0,cons:'',url:url,balls:[],hoops:[],hoop:null,hoopBox:null,hoopDetectStatus:'',calibratingHoop:false,trackingWarning:'',ballFrames:0,offset:0,activeSegment:0,cutTimes:[],cutSummary:null,videoInfo:{status:accepted?'checking':'error',name:f.name||'Video file',type:f.type||'Not reported',size:(f.size/1048576).toFixed(1)+' MB',reason:'Checking the first decoded frame.'}};if(inp)inp.value='';render();if(!accepted)return;var probe=document.createElement('video'),done=false;probe.muted=true;probe.playsInline=true;probe.preload='auto';function cleanup(){probe.removeEventListener('loadeddata',loaded);probe.removeEventListener('error',failed);probe.removeAttribute('src');try{probe.load()}catch(ignore){}}function finishError(message){if(done)return;done=true;clearTimeout(timer);cleanup();if(co.url!==url)return;co.st='err';co.msg=message;co.videoInfo.status='error';co.videoInfo.reason=message;window.cr()}function loaded(){if(done)return;var duration=probe.duration,width=probe.videoWidth,height=probe.videoHeight;if(!Number.isFinite(duration)||duration<=0){finishError('The video opened, but its duration could not be read. Re-export as MP4 (H.264/AVC).');return}if(!width||!height){finishError('The browser could not decode a usable video frame. Try MP4 with H.264/AVC video and AAC audio.');return}if(duration>90){finishError('This recording is '+mmss(duration)+' long. The coach currently analyses videos up to 90 seconds; trim the clip and try again.');return}done=true;clearTimeout(timer);cleanup();if(co.url!==url)return;co.st='ready';co.msg='';co.videoInfo.status='ready';co.videoInfo.resolution=width+' × '+height;co.videoInfo.duration=mmss(duration);co.videoInfo.reason='The browser decoded the first frame successfully. This does not guarantee every frame in the file is decodable.';if(f.size>250*1024*1024)co.videoInfo.warning='Large file: analysis may be slower and use more phone memory.';window.cr()}function failed(){var code=probe.error?probe.error.code:0;var detail=code===3?'The browser found the video but could not decode its video stream. An unsupported codec or profile, including some HEVC/H.265 recordings, is a common cause.':code===4?'The browser does not support this file/container or its declared media type.':code===2?'The browser could not read the local video data. The file may be damaged or unavailable.':'The browser could not open this video file.';finishError(detail+' MP4 is a container, not a codec. Re-export as MP4 with H.264/AVC video and AAC audio, then try again.')}probe.addEventListener('loadeddata',loaded);probe.addEventListener('error',failed);var timer=setTimeout(function(){finishError('The browser did not decode the first frame in time. Try exporting MP4 (H.264/AVC) at 1080p or lower.')},18000);probe.src=url;probe.load()};window.vErr=function(){var message='The video player could not decode this recording. A file ending in .mp4 can still contain HEVC/H.265 video, which some browsers cannot play. Try MP4 with H.264/AVC video and AAC audio.';co.st='err';co.msg=message;if(co.videoInfo){co.videoInfo.status='error';co.videoInfo.reason=message}window.cr()};
   
 
   PG.coach=function(){var html=oldCoach();setTimeout(ensureBallOverlay,80);return html};
@@ -373,15 +373,24 @@ render();if(!S.p.name)prof();
     var scale=Math.min(w/v.videoWidth,h/v.videoHeight),ox=(w-v.videoWidth*scale)/2,oy=(h-v.videoHeight*scale)/2;
     function xy(p){return[ox+p[0]*v.videoWidth*scale,oy+p[1]*v.videoHeight*scale]}
     var currentSegment=(co.cutTimes||[]).filter(function(t){return t<=v.currentTime}).length;
-    var trail=(co.balls||[]).filter(function(b){return b.segment===currentSegment&&b.t<=v.currentTime&&v.currentTime-b.t<1.3});
-    if(trail.length>1){x.beginPath();trail.forEach(function(b,i){var p=xy([b.x,b.y]);if(i===0)x.moveTo(p[0],p[1]);else x.lineTo(p[0],p[1])});x.strokeStyle='rgba(255,115,30,.85)';x.lineWidth=3;x.stroke()}
-    var last=trail[trail.length-1];if(last){var p=xy([last.x,last.y]),r=Math.max(5,last.w*v.videoWidth*scale*.65);x.beginPath();x.arc(p[0],p[1],r,0,Math.PI*2);x.strokeStyle='#ffb020';x.lineWidth=2.5;x.stroke();x.fillStyle='rgba(255,176,32,.18)';x.fill()}
-    if(co.hoopBox&&Math.abs(v.currentTime-co.hoopBox.t)<1.2){
-      var hb=co.hoopBox,tl=xy([hb.x-hb.w/2,hb.y-hb.h/2]),br=xy([hb.x+hb.w/2,hb.y+hb.h/2]);
-      x.strokeStyle='#48d9ff';x.lineWidth=2.5;x.setLineDash([7,4]);x.strokeRect(tl[0],tl[1],br[0]-tl[0],br[1]-tl[1]);x.setLineDash([]);
-      x.fillStyle='#48d9ff';x.font='bold 12px system-ui';x.fillText('AI HOOP '+Math.round(hb.score*100)+'%',tl[0],Math.max(14,tl[1]-6));
+    var segmentBalls=(co.balls||[]).filter(function(b){return b.segment===currentSegment}),allSeen=segmentBalls.filter(function(b){return b.t<=v.currentTime}),trail=allSeen.filter(function(b){return v.currentTime-b.t<1.8});
+    if(trail.length>1){x.save();x.beginPath();trail.forEach(function(b,i){var p=xy([b.x,b.y]);if(i===0)x.moveTo(p[0],p[1]);else x.lineTo(p[0],p[1])});x.strokeStyle='rgba(255,135,35,.98)';x.lineWidth=3.5;x.shadowColor='#ff7a1a';x.shadowBlur=9;x.stroke();x.shadowBlur=0;trail.forEach(function(b){var p=xy([b.x,b.y]);x.beginPath();x.arc(p[0],p[1],3,0,Math.PI*2);x.fillStyle='#ffd08a';x.fill()});x.restore()}
+    if(trail.length>=5&&trail[trail.length-1].t-trail[0].t>=.22){
+      function fitQuadratic(key){var n=trail.length,s1=0,s2=0,s3=0,s4=0,r0=0,r1=0,r2=0;trail.forEach(function(b){var t=b.t-trail[0].t,v=b[key];s1+=t;s2+=t*t;s3+=t*t*t;s4+=t*t*t*t;r0+=v;r1+=t*v;r2+=t*t*v});var m=[[n,s1,s2,r0],[s1,s2,s3,r1],[s2,s3,s4,r2]];for(var c=0;c<3;c++){var pivot=m[c][c];if(Math.abs(pivot)<1e-9)return null;for(var j=c;j<4;j++)m[c][j]/=pivot;for(var k=0;k<3;k++)if(k!==c){var q=m[k][c];for(var z=c;z<4;z++)m[k][z]-=q*m[c][z]}}return[m[0][3],m[1][3],m[2][3]]}
+      var fitX=fitQuadratic('x'),fitY=fitQuadratic('y');if(fitX&&fitY){var span=trail[trail.length-1].t-trail[0].t;x.save();x.beginPath();for(var step=0;step<=24;step++){var t=span*step/24,px=fitX[0]+fitX[1]*t+fitX[2]*t*t,py=fitY[0]+fitY[1]*t+fitY[2]*t*t,p=xy([px,py]);if(step===0)x.moveTo(p[0],p[1]);else x.lineTo(p[0],p[1])}x.strokeStyle='rgba(255,225,100,.95)';x.lineWidth=2.5;x.setLineDash([5,4]);x.stroke();x.setLineDash([]);x.fillStyle='#ffe164';x.font='bold 10px system-ui';x.fillText('SMOOTHED BALL ARC',8,34);x.restore()}
     }
-    if(co.hoop){var q=xy([co.hoop.x,co.hoop.y]),hr=co.hoop.r*v.videoWidth*scale;x.beginPath();x.ellipse(q[0],q[1],hr,hr*.48,0,0,Math.PI*2);x.strokeStyle='#39ff14';x.lineWidth=2.5;x.stroke()}
+    var last=allSeen[allSeen.length-1],next=segmentBalls.find(function(b){return b.t>v.currentTime});if(last&&v.currentTime-last.t<1.0){var shown={x:last.x,y:last.y,w:last.w},age=v.currentTime-last.t,prev=last;if(next&&next.t-prev.t<=.45&&v.currentTime>=prev.t){var f=(v.currentTime-prev.t)/(next.t-prev.t);shown.x=prev.x+(next.x-prev.x)*f;shown.y=prev.y+(next.y-prev.y)*f;shown.w=prev.w+(next.w-prev.w)*f}var p=xy([shown.x,shown.y]),r=Math.max(6,shown.w*v.videoWidth*scale*.72),live=age<.22||!!(next&&next.t-v.currentTime<=.22);x.beginPath();x.arc(p[0],p[1],r,0,Math.PI*2);x.strokeStyle=live?'#ffb020':'#ff6b6b';x.lineWidth=live?3:2.5;x.setLineDash(live?[]:[5,4]);x.stroke();x.setLineDash([]);x.fillStyle=live?'rgba(255,176,32,.2)':'rgba(255,107,107,.14)';x.fill();x.fillStyle=live?'#ffb020':'#ff8b8b';x.font='bold 11px system-ui';x.fillText(live?'BALL · TRACKED':'BALL · LAST SEEN '+age.toFixed(1)+'s',p[0]+r+4,p[1]-r-3)}
+    var hoopHistory=(co.hoops||[]).filter(function(h){return h.segment===currentSegment&&h.t<=v.currentTime+.02}),hoopSample=hoopHistory.length?hoopHistory[hoopHistory.length-1]:null,activeBox=hoopSample&&hoopSample.found&&v.currentTime-hoopSample.t<=1.25?hoopSample.box:null;
+    if(!hoopSample&&co.hoopBox&&(!Number.isFinite(co.hoopBox.t)||Math.abs(co.hoopBox.t-v.currentTime)<=1.25))activeBox=co.hoopBox;
+    if(activeBox){
+      var hb=activeBox,tl=xy([hb.x-hb.w/2,hb.y-hb.h/2]),br=xy([hb.x+hb.w/2,hb.y+hb.h/2]);
+      x.strokeStyle='#48d9ff';x.lineWidth=2.5;x.setLineDash([7,4]);x.strokeRect(tl[0],tl[1],br[0]-tl[0],br[1]-tl[1]);x.setLineDash([]);
+      x.fillStyle='#48d9ff';x.font='bold 12px system-ui';x.fillText('AI HOOP REGION '+Math.round(hb.score*100)+'%',tl[0],Math.max(14,tl[1]-6));
+      var bx1=Math.max(0,hb.x-hb.w*.72),bx2=Math.min(1,hb.x+hb.w*.72),by1=Math.max(0,hb.y-hb.h*.9),by2=Math.max(0,hb.y-hb.h*.12),bl=xy([bx1,by1]),brd=xy([bx2,by2]);
+      x.strokeStyle='#ff4fd8';x.lineWidth=2;x.setLineDash([5,4]);x.strokeRect(bl[0],bl[1],brd[0]-bl[0],brd[1]-bl[1]);x.setLineDash([]);x.fillStyle='#ff4fd8';x.font='bold 11px system-ui';x.fillText('EST. BACKBOARD',bl[0],Math.max(13,bl[1]-5));
+      var q=xy([hb.x,hb.y]),hr=Math.max(5,hb.w*.22*v.videoWidth*scale);x.beginPath();x.ellipse(q[0],q[1],hr,hr*.48,0,0,Math.PI*2);x.strokeStyle='#39ff14';x.lineWidth=2.5;x.stroke();
+    }else if(co.hoops&&co.hoops.length&&v.currentTime>0){x.fillStyle='#ffb020';x.font='bold 11px system-ui';x.fillText('HOOP NOT CURRENTLY DETECTED',8,18)}
+    if(co.hoop&&co.hoop.t!=null&&Math.abs(co.hoop.t-v.currentTime)<=1.25){var q=xy([co.hoop.x,co.hoop.y]),hr=co.hoop.r*v.videoWidth*scale;x.beginPath();x.ellipse(q[0],q[1],hr,hr*.48,0,0,Math.PI*2);x.strokeStyle='#39ff14';x.lineWidth=2.5;x.stroke()}
   };
 
   window.autoDetectHoop=async function(){
@@ -390,8 +399,8 @@ render();if(!S.p.name)prof();
     v.pause();co.hoopDetectStatus='Loading the hoop detector. First use downloads the model to this device...';window.cr();
     try{
       var found=await detectHoopInFrame(v);
-      if(!found){co.hoopBox=null;co.hoopDetectStatus='No clear hoop found in this frame. Pause on a frame where the hoop is larger and unobstructed, or use manual rim calibration.';window.cr();return}
-      found.t=v.currentTime;co.hoopBox=found;co.calibratingHoop=true;
+      if(!found){co.hoopBox=null;co.hoops=co.hoops||[];co.hoops.push({t:v.currentTime,segment:(co.cutTimes||[]).filter(function(t){return t<=v.currentTime}).length,found:false,box:null});co.hoopDetectStatus='No clear hoop found in this frame. Pause on a frame where the hoop is larger and unobstructed, or use manual rim calibration.';window.cr();return}
+      found.t=v.currentTime;co.hoopBox=found;co.hoops=co.hoops||[];co.hoops.push({t:v.currentTime,segment:(co.cutTimes||[]).filter(function(t){return t<=v.currentTime}).length,found:true,box:found});co.calibratingHoop=true;
       var overlay=$('#ballOverlay');if(overlay){overlay.style.pointerEvents='auto';overlay.style.cursor='crosshair'}
       co.hoopDetectStatus='Hoop region found ('+Math.round(found.score*100)+'% model score). Tap the exact centre of the rim in the highlighted box to finish calibration.';
     }catch(e){
@@ -414,7 +423,7 @@ render();if(!S.p.name)prof();
     var rect=c.getBoundingClientRect(),w=c.clientWidth,h=c.clientHeight,scale=Math.min(w/v.videoWidth,h/v.videoHeight),ox=(w-v.videoWidth*scale)/2,oy=(h-v.videoHeight*scale)/2;
     var nx=(e.clientX-rect.left-ox)/(v.videoWidth*scale),ny=(e.clientY-rect.top-oy)/(v.videoHeight*scale);
     if(nx<0||nx>1||ny<0||ny>1)return;
-    co.hoop={x:nx,y:ny,r:co.hoop?co.hoop.r:.035};co.calibratingHoop=false;co.hoopDetectStatus='Rim centre confirmed. Review the overlay and shot suggestions.';
+    co.hoop={x:nx,y:ny,r:co.hoop?co.hoop.r:.035,t:v.currentTime};co.calibratingHoop=false;co.hoopDetectStatus='Rim centre confirmed. Review the overlay and shot suggestions.';
     c.style.pointerEvents='none';c.style.cursor='default';refreshHoopEstimates();window.cr();
   };
 
@@ -428,9 +437,19 @@ render();if(!S.p.name)prof();
     (co.shots||[]).forEach(function(s){s.estimate=estimateHoopOutcome(s)});
   }
 
+  function shotSegmentForTime(time){return (co.cutTimes||[]).filter(function(t){return t<=time}).length}
+
+  function hoopAt(time){
+    var samples=(co.hoops||[]).filter(function(h){return h.segment===shotSegmentForTime(time)&&Math.abs(h.t-time)<=1.25}).sort(function(a,b){return Math.abs(a.t-time)-Math.abs(b.t-time)});
+    if(samples.length){var sample=samples[0];if(!sample.found||!sample.box)return null;var box=sample.box;return{x:box.x,y:box.y,r:Math.max(.015,Math.min(.12,box.w*.22)),score:box.score,t:sample.t,box:box,automatic:true}}
+    if(co.hoop&&(!Number.isFinite(co.hoop.t)||Math.abs(co.hoop.t-time)<=1.25))return co.hoop;
+    return null;
+  }
+
   function estimateHoopOutcome(shot){
     shot.estimateReason='';
-    if(!co.hoop){shot.estimateReason='Hoop not calibrated. Pause on a clear frame showing the rim and backboard, then mark the centre of the rim.';return null}
+    var rim=hoopAt(shot.t);
+    if(!rim){shot.estimateReason='The hoop was not detected in this camera view near this shot. No make/miss estimate is safe to show.';return null}
     var points=co.balls.filter(function(b){return b.segment===shot.segment&&b.t>=shot.t-.15&&b.t<=shot.t+3}).sort(function(a,b){return a.t-b.t});
     if(points.length<2){shot.estimateReason='Not enough basketball detections in this shot. The ball may be obscured, too small, blurred, or hidden by the machine net.';return null}
     var crossed=false,best=null;
@@ -439,12 +458,12 @@ render();if(!S.p.name)prof();
       if(gap<=0||gap>.45)continue;
       if(a.y<co.hoop.y&&b.y>=co.hoop.y&&b.y>a.y){
         crossed=true;
-        var f=(co.hoop.y-a.y)/(b.y-a.y),crossX=a.x+(b.x-a.x)*f,dx=Math.abs(crossX-co.hoop.x),r=co.hoop.r;
+        var f=(rim.y-a.y)/(b.y-a.y),crossX=a.x+(b.x-a.x)*f,dx=Math.abs(crossX-rim.x),r=rim.r;
         if(dx<=r*1.05){best={out:'m',label:'Likely make',confidence:Math.min(.86,.5+(b.score||0)*.24+Math.max(0,.4-gap)*.22)};break}
         if(dx<=r*3.3){best={out:'x',label:'Likely miss',confidence:Math.min(.78,.43+(b.score||0)*.22+Math.max(0,.4-gap)*.2)};break}
       }
     }
-    if(best){shot.estimateReason='Ball trajectory crossed the calibrated rim line. Check the video before accepting the suggestion.';return best}
+    if(best){shot.estimateReason='The detected ball crossed the estimated rim line for this camera view. The rim centre comes from an object box, so review the video before accepting the suggestion.';return best}
     if(crossed){shot.estimateReason='The detected ball crossed the rim height, but its path was too far from the calibrated rim for a useful estimate.';return null}
     shot.estimateReason='The ball was detected, but there was no reliable downward crossing of the calibrated rim line. Check whether the rim is correctly marked and visible.';return null;
   }
@@ -494,17 +513,16 @@ render();if(!S.p.name)prof();
       });
       for(var i=2;i<smooth.length-2;i++){
         var peak=smooth[i];
-        if(peak==null||peak<.20||smooth[i-1]==null||smooth[i+1]==null||peak<smooth[i-1]||peak<smooth[i+1])continue;
+        if(peak==null||peak<.12||smooth[i-1]==null||smooth[i+1]==null||peak<smooth[i-1]||peak<smooth[i+1])continue;
         var start=Math.max(0,i-Math.round(.8/dt));
         var before=smooth.slice(start,i).filter(function(x){return x!=null});
         if(before.length<3)continue;
         var prominence=peak-Math.min.apply(null,before);
         var baseIndex=Math.max(0,i-Math.round(.32/dt));
         var rise=height[i]!=null&&height[baseIndex]!=null?height[i]-height[baseIndex]:0;
-        if(prominence<.12||!(rise>.07||prominence>.25))continue;
+        if(prominence<.10||!(rise>.05||prominence>.20))continue;
         var wrist=point(frames[i],J.w),linked=ballNear(i*dt,wrist),elbow=angle(point(frames[i],J.s),point(frames[i],J.e),wrist);
-        if(elbow!=null&&elbow<82&&!linked)continue;
-        if(!linked&&prominence<.24)continue;
+        if(elbow!=null&&elbow<65&&!linked)continue;
         candidates.push({index:i,time:i*dt,side:side,J:J,prominence:prominence,ballLinked:linked});
       }
     });
@@ -527,7 +545,7 @@ render();if(!S.p.name)prof();
       var release=frames[p],first=frames[pre[0]],last=frames[post[post.length-1]];
       var shoulder=point(release,J.s),hip=point(release,J.h),hipStart=point(first,J.h),hipEnd=point(last,J.h);
       var nose=point(release,0),wrist=point(release,J.w);
-      var footL=point(first,27),footR=point(first,28),shoulderL=point(first,11),shoulderR=point(first,12);
+      var footL=point(first,31)||point(first,29)||point(first,27),footR=point(first,32)||point(first,30)||point(first,28),shoulderL=point(first,11),shoulderR=point(first,12);
       var follow=frames[Math.min(frames.length-1,p+Math.round(.25/dt))];
       var jointIds=[J.s,J.e,J.w,J.h,J.k,J.a],confidence=jointIds.reduce(function(a,id){var v=release&&release[id]?release[id][2]:0;return a+v},0)/jointIds.length;
       shots.push({
@@ -577,7 +595,7 @@ render();if(!S.p.name)prof();
     co.msg=message;co.prog=progress||0;window.cr();
   }
   window.run=async function(){
-co.st='run';co.prog=0;co.msg='Preparing your video...';co.shots=[];co.find=[];co.FR=[];co.balls=[];co.hoop=null;co.ballFrames=0;co.trackingWarning='';co.cutTimes=[];co.cutSummary=null;co.offset=0;co.activeSegment=0;window.cr();
+co.st='run';co.prog=0;co.msg='Preparing your video...';co.shots=[];co.find=[];co.FR=[];co.balls=[];co.hoops=[];co.hoop=null;co.hoopBox=null;co.backboardBox=null;co.ballFrames=0;co.trackingWarning='';co.cutTimes=[];co.cutSummary=null;co.offset=0;co.activeSegment=0;window.cr();
 var pose=null,detector=null,video=document.createElement('video'),detectorFinished=false;
 try{
 video.muted=true;video.playsInline=true;video.preload='auto';coachStage('Opening and decoding the video...',.02);
@@ -588,30 +606,80 @@ coachStage('Loading the vision engine...',.05);var vision=await withTimeout(impo
 var makePose=function(delegate){return vision.PoseLandmarker.createFromOptions(files,{baseOptions:{modelAssetPath:POSE_FULL,delegate:delegate},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.5,minPosePresenceConfidence:.5,minTrackingConfidence:.5})};
 coachStage('Loading body-tracking model...',.13);try{pose=await withTimeout(makePose('GPU'),35000,'GPU body-model loading')}catch(gpuError){coachStage('GPU unavailable or slow — switching to CPU body tracking...',.17);pose=await withTimeout(makePose('CPU'),45000,'CPU body-model loading')}
 var makeDetector=function(delegate){return vision.ObjectDetector.createFromOptions(files,{baseOptions:{modelAssetPath:BALL_MODEL,delegate:delegate},runningMode:'VIDEO',scoreThreshold:.08,maxResults:8,categoryAllowlist:['sports ball']})};
-coachStage('Starting optional basketball detection...',.21);var detectorPromise=makeDetector('CPU').then(function(readyDetector){if(detectorFinished){try{readyDetector.close()}catch(ignore){}}else detector=readyDetector;return readyDetector}).catch(function(){co.trackingWarning='The basketball detector could not load on this device. Body-form analysis will continue, but ball tracking and rim estimates will be unavailable.';return null});
-await Promise.race([detectorPromise,new Promise(function(resolve){setTimeout(resolve,9000)})]);if(!detector){co.trackingWarning='Basketball detection is still loading or unavailable. Continuing with body-form analysis; ball tracking may be missing.';coachStage('Ball detector delayed — continuing with body tracking...',.25)}
-var interval=1/8,total=Math.max(1,Math.ceil(video.duration/interval)),frames=[],tracks=[],last=null,previous=null,cutFrames=[],segmentIndex=0,lastCut=-100,previousThumb=null,previousPose=null;
+coachStage('Starting optional basketball detection...',.21);var hoopLoadError='',hoopLoadPromise=getHoopSession().catch(function(e){hoopLoadError=e&&e.message?e.message:'The hoop detector could not load.';return null});
+var detectorPromise=makeDetector('CPU').then(function(readyDetector){if(detectorFinished){try{readyDetector.close()}catch(ignore){}}else detector=readyDetector;return readyDetector}).catch(function(){co.trackingWarning='The basketball detector could not load on this device. Body-form analysis will continue, but ball tracking and rim estimates will be unavailable.';return null});
+await Promise.race([Promise.all([detectorPromise,hoopLoadPromise]),new Promise(function(resolve){setTimeout(resolve,9000)})]);if(!detector){co.trackingWarning='Basketball detection is still loading or unavailable. Continuing with body-form analysis; ball tracking may be missing.';coachStage('Ball detector delayed — continuing with body tracking...',.25)}
+var interval=1/8,total=Math.max(1,Math.ceil(video.duration/interval)),frames=[],tracks=[],hoops=[],lastHoopScan=-Infinity,hoopScanBusy=false,hoopScanCount=0,hoopScanHits=0,last=null,previous=null,cutFrames=[],cutTimesExact=[],segmentIndex=0,lastCut=-100,lastThumbDelta=0,previousThumb=null,previousPose=null,lastPoseTime=-Infinity,lastStamp=0,processedFrames=0,detectionFrames=0,droppedVideoFrames=0,lastPresentedFrames=0;
 var cutCanvas=document.createElement('canvas');cutCanvas.width=32;cutCanvas.height=18;var cutContext=cutCanvas.getContext('2d',{willReadFrequently:true});co.asp=video.videoWidth/video.videoHeight;co.dt=interval;
 function thumb(){if(!cutContext)return null;try{cutContext.drawImage(video,0,0,32,18);return cutContext.getImageData(0,0,32,18).data}catch(ignore){return null}}
 function compareThumb(a,b){if(!a||!b)return{mean:0,changed:0};var totalDiff=0,changed=0,pixels=a.length/4;for(var q=0;q<a.length;q+=4){var dr=Math.abs(a[q]-b[q]),dg=Math.abs(a[q+1]-b[q+1]),db=Math.abs(a[q+2]-b[q+2]),d=(dr+dg+db)/3;totalDiff+=d/255;if(d>48)changed++}return{mean:totalDiff/pixels,changed:changed/pixels}}
 function poseSignature(f){if(!f||!f[11]||!f[12]||!f[23]||!f[24]||Math.min(f[11][2],f[12][2],f[23][2],f[24][2])<.3)return null;var cx=(f[23][0]+f[24][0])*.5*co.asp,cy=(f[23][1]+f[24][1])*.5,sx=(f[11][0]+f[12][0])*.5*co.asp,sy=(f[11][1]+f[12][1])*.5;return{x:cx,y:cy,scale:Math.hypot(sx-cx,sy-cy)}}
-function waitForSeek(time){return withTimeout(new Promise(function(resolve,reject){var settled=false;function clean(){video.removeEventListener('seeked',finish);video.removeEventListener('error',fail)}function finish(){if(settled)return;settled=true;clean();resolve()}function fail(){if(settled)return;settled=true;clean();reject(new Error('The video could not be decoded near '+mmss(time)+'.'))}video.addEventListener('seeked',finish);video.addEventListener('error',fail);try{video.currentTime=time;if(Math.abs(video.currentTime-time)<.0005&&video.readyState>=2)finish()}catch(e){fail()}}),12000,'Frame decoding')}
-for(var i=0;i<total;i++){
-var time=Math.min(video.duration-.001,i*interval);await waitForSeek(time);var stamp=Math.round(time*1000)+1,result=pose.detectForVideo(video,stamp),landmarks=result.landmarks&&result.landmarks[0]?result.landmarks[0].map(function(p){return[p.x,p.y,p.visibility]}):null;
-var currentThumb=thumb(),delta=compareThumb(previousThumb,currentThumb),signature=poseSignature(landmarks),poseJump=false;
-if(signature&&previousPose){var movement=Math.hypot(signature.x-previousPose.x,signature.y-previousPose.y)/Math.max(.035,previousPose.scale),scaleRatio=Math.max(signature.scale,previousPose.scale)/Math.max(.025,Math.min(signature.scale,previousPose.scale));poseJump=movement>.9||scaleRatio>1.7}
-var visualCut=(delta.mean>.25&&delta.changed>.43)||(delta.mean>.18&&poseJump);if(i>0&&visualCut&&i-lastCut>=10){cutFrames.push(i);segmentIndex++;lastCut=i;last=null;previous=null}previousThumb=currentThumb;previousPose=signature;frames.push(landmarks);
-if(detector){var detections=detector.detectForVideo(video,stamp).detections||[],choices=[];detections.forEach(function(d){var cat=(d.categories||[]).find(function(c){return String(c.categoryName||c.displayName||'').toLowerCase()==='sports ball'}),box=d.boundingBox;if(!cat||!box)return;var bw=box.width/video.videoWidth,bh=box.height/video.videoHeight,ratio=bw/Math.max(.0001,bh);if(bw<.004||bh<.004||bw>.28||bh>.28||ratio<.45||ratio>2.2)return;choices.push({x:(box.originX+box.width/2)/video.videoWidth,y:(box.originY+box.height/2)/video.videoHeight,w:bw,h:bh,score:cat.score||0,t:time})});
-var selected=null;if(choices.length){if(last&&time-last.t<.7){var vx=previous&&last?(last.x-previous.x)/Math.max(.001,last.t-previous.t):0,vy=previous&&last?(last.y-previous.y)/Math.max(.001,last.t-previous.t):0,px=last.x+vx*(time-last.t),py=last.y+vy*(time-last.t);choices.sort(function(a,b){return Math.hypot(a.x-px,a.y-py)-Math.hypot(b.x-px,b.y-py)});var close=choices[0],gate=Math.min(.32,.1+Math.hypot(vx,vy)*(time-last.t)*1.8);if(Math.hypot(close.x-px,close.y-py)<gate)selected=close;else if(close.score>.62&&time-last.t>.35)selected=close}else{choices.sort(function(a,b){return b.score-a.score});if(choices[0].score>=.18)selected=choices[0]}}
-if(selected){selected.segment=segmentIndex;previous=last;last=selected;tracks.push(selected)}else if(last&&time-last.t>.7){last=null;previous=null}}
-co.prog=.25+.72*(i+1)/total;co.msg='Scanning frames and detecting camera changes · '+(i+1)+' / '+total;co.FR=frames;co.balls=tracks;co.cutTimes=cutFrames.map(function(k){return k*interval});if(i%4===0)window.cr()}
+if(typeof video.requestVideoFrameCallback!=='function')throw new Error('This browser does not support precise video-frame callbacks. Update Chrome and try again so the ball detector can inspect each presented frame.');
+coachStage('Starting frame-by-frame basketball detection...',.25);
+await new Promise(function(resolve,reject){
+  var finished=false,callbackId=null;
+  function finish(error){if(finished)return;finished=true;video.pause();video.removeEventListener('ended',onEnded);if(callbackId!=null&&video.cancelVideoFrameCallback)try{video.cancelVideoFrameCallback(callbackId)}catch(ignore){}if(error)reject(error);else resolve()}
+  function onEnded(){finish()}
+  function schedule(){if(finished)return;callbackId=video.requestVideoFrameCallback(function(now,metadata){processFrame(metadata).catch(finish)})}
+  async function processFrame(metadata){
+    if(finished)return;
+    video.pause();
+    var time=Math.max(0,Math.min(video.duration-.001,Number.isFinite(metadata.mediaTime)?metadata.mediaTime:video.currentTime));
+    processedFrames++;
+    if(metadata.presentedFrames&&lastPresentedFrames&&metadata.presentedFrames>lastPresentedFrames+1)droppedVideoFrames+=metadata.presentedFrames-lastPresentedFrames-1;
+    if(metadata.presentedFrames)lastPresentedFrames=metadata.presentedFrames;
+    var stamp=Math.max(lastStamp+1,Math.round(time*1000)+1);lastStamp=stamp;
+    var currentThumb=thumb(),delta=compareThumb(previousThumb,currentThumb),shouldPose=time-lastPoseTime>=interval*.9,landmarks=null,signature=null,poseJump=false;
+    if(shouldPose){
+      var poseResult=pose.detectForVideo(video,stamp);
+      landmarks=poseResult.landmarks&&poseResult.landmarks[0]?poseResult.landmarks[0].map(function(p){return[p.x,p.y,p.visibility]}):null;
+      signature=poseSignature(landmarks);
+      if(signature&&previousPose){var movement=Math.hypot(signature.x-previousPose.x,signature.y-previousPose.y)/Math.max(.035,previousPose.scale),scaleRatio=Math.max(signature.scale,previousPose.scale)/Math.max(.025,Math.min(signature.scale,previousPose.scale));poseJump=movement>.9||scaleRatio>1.7}
+    }
+    var visualCut=(delta.mean>.42&&delta.changed>.72&&lastThumbDelta<.18)||(shouldPose&&delta.mean>.30&&delta.changed>.68&&poseJump&&lastThumbDelta<.28);lastThumbDelta=delta.mean;
+    if(processedFrames>1&&frames.length>0&&visualCut&&frames.length-lastCut>=2){cutFrames.push(frames.length);cutTimesExact.push(time);segmentIndex++;lastCut=frames.length;last=null;previous=null;previousPose=null}
+    if(shouldPose){if(signature)previousPose=signature;frames.push(landmarks);lastPoseTime=time}
+    previousThumb=currentThumb;
+    if(hoopSession&&!hoopScanBusy&&time-lastHoopScan>=.8){
+      hoopScanBusy=true;lastHoopScan=time;hoopScanCount++;
+      try{var hoopFound=await detectHoopInFrame(video);hoops.push({t:time,segment:segmentIndex,found:!!hoopFound,box:hoopFound});if(hoopFound)hoopScanHits++}
+      catch(hoopScanError){hoops.push({t:time,segment:segmentIndex,found:false,box:null,error:hoopScanError&&hoopScanError.message?hoopScanError.message:'Hoop scan failed'})}
+      finally{hoopScanBusy=false}
+    }
+    if(detector){
+      var detections=detector.detectForVideo(video,stamp).detections||[],choices=[];
+      detections.forEach(function(d){var cat=(d.categories||[]).find(function(c){return String(c.categoryName||c.displayName||'').toLowerCase()==='sports ball'}),box=d.boundingBox;if(!cat||!box)return;var bw=box.width/video.videoWidth,bh=box.height/video.videoHeight,ratio=bw/Math.max(.0001,bh);if(bw<.004||bh<.004||bw>.28||bh>.28||ratio<.45||ratio>2.2)return;choices.push({x:(box.originX+box.width/2)/video.videoWidth,y:(box.originY+box.height/2)/video.videoHeight,w:bw,h:bh,score:cat.score||0,t:time})});
+      var selected=null;
+      if(choices.length){
+        if(last&&time-last.t<.7){
+          var vx=previous&&last?(last.x-previous.x)/Math.max(.001,last.t-previous.t):0,vy=previous&&last?(last.y-previous.y)/Math.max(.001,last.t-previous.t):0,px=last.x+vx*(time-last.t),py=last.y+vy*(time-last.t);
+          choices.sort(function(a,b){return Math.hypot(a.x-px,a.y-py)-Math.hypot(b.x-px,b.y-py)});
+          var close=choices[0],gate=Math.min(.32,.1+Math.hypot(vx,vy)*(time-last.t)*1.8);
+          if(Math.hypot(close.x-px,close.y-py)<gate)selected=close;else if(close.score>.62&&time-last.t>.35)selected=close;
+        }else{choices.sort(function(a,b){return b.score-a.score});if(choices[0].score>=.18)selected=choices[0]}
+      }
+      if(selected){selected.segment=segmentIndex;previous=last;last=selected;tracks.push(selected);detectionFrames++}
+      else if(last&&time-last.t>.7){last=null;previous=null}
+    }
+    co.videoFramesProcessed=processedFrames;co.ballDetectionFrames=detectionFrames;co.frameDropCount=droppedVideoFrames;co.hoops=hoops;co.prog=.25+.72*Math.min(1,time/Math.max(.001,video.duration));co.msg='Checking every presented frame for the basketball · '+processedFrames+' frames';co.FR=frames;co.balls=tracks;co.cutTimes=cutTimesExact.slice();
+    if(processedFrames%12===0)window.cr();
+    if(video.ended){finish();return}
+    schedule();
+    try{await video.play()}catch(e){finish(new Error('Video playback stopped during frame-by-frame analysis: '+(e&&e.message?e.message:'Playback could not resume.')))}
+  }
+  video.addEventListener('ended',onEnded);
+  schedule();
+  video.play().catch(function(e){finish(new Error('Could not start frame-by-frame video processing: '+(e&&e.message?e.message:'Playback was blocked.')))});
+});
 detectorFinished=true;try{if(pose)pose.close()}catch(ignore){}pose=null;if(detector){try{detector.close()}catch(ignore){}detector=null}
-co.FR=frames;co.balls=tracks;co.ballFrames=tracks.length;co.cutTimes=cutFrames.map(function(k){return k*interval});coachStage('Analysing each camera section separately...',.98);
+co.FR=frames;co.balls=tracks;co.hoops=hoops;co.ballFrames=tracks.length;co.videoFramesProcessed=processedFrames;co.ballDetectionFrames=detectionFrames;co.frameDropCount=droppedVideoFrames;co.cutTimes=cutTimesExact.slice();coachStage('Analysing each camera section separately...',.98);
 var bounds=[0].concat(cutFrames,[frames.length]),allShots=[],allNotes=[],sectionCount=0,skippedSections=0;
-for(var si=0;si<bounds.length-1;si++){var start=bounds[si],end=bounds[si+1],length=end-start;if(length<14){skippedSections++;continue}co.FR=frames.slice(start,end);co.balls=tracks.filter(function(b){return b.segment===si});co.offset=start*interval;co.activeSegment=si;try{analyse();var sectionShots=co.shots||[];if(sectionShots.length)sectionCount++;allShots=allShots.concat(sectionShots);(co.find||[]).forEach(function(note){allNotes.push(note)})}catch(sectionError){skippedSections++}}
+for(var si=0;si<bounds.length-1;si++){var start=bounds[si],end=bounds[si+1],length=end-start;if(length<7){skippedSections++;continue}co.FR=frames.slice(start,end);co.balls=tracks.filter(function(b){return b.segment===si});co.offset=start*interval;co.activeSegment=si;try{analyse();var sectionShots=co.shots||[];if(sectionShots.length)sectionCount++;allShots=allShots.concat(sectionShots);(co.find||[]).forEach(function(note){allNotes.push(note)})}catch(sectionError){skippedSections++}}
 co.FR=frames;co.balls=tracks;co.offset=0;co.activeSegment=0;co.shots=allShots.sort(function(a,b){return a.t-b.t});var seenNotes={};co.find=allNotes.filter(function(note){var key=note.o;if(seenNotes[key])return false;seenNotes[key]=true;return true}).slice(0,8);var confidence=co.shots.length?co.shots.reduce(function(sum,shot){return sum+(shot.poseConfidence||0)},0)/co.shots.length:0;co.cutSummary={changes:cutFrames.length,sections:bounds.length-1,sectionsWithShots:sectionCount,skipped:skippedSections};
 co.cons='Detected '+cutFrames.length+' possible camera-angle change(s), creating '+(bounds.length-1)+' independent section(s). '+sectionCount+' section(s) contained detected shooting motion; '+co.shots.length+' likely shot(s) were found. Average pose landmark visibility: '+(co.shots.length?Math.round(confidence*100)+'%':'not enough reliable shots')+'. Each section was analysed separately so body measurements and ball tracking do not carry across camera cuts.'+(skippedSections?' '+skippedSections+' very short or unusable section(s) were skipped.':'');
-refreshHoopEstimates();co.st='done';co.sel=-1;if(!tracks.length)co.trackingWarning=co.trackingWarning||'No basketball detections were found. The ball may be too small, blurred, hidden, or outside the frame.';else if(tracks.length<8)co.trackingWarning='Only a short ball trail was detected. Keep the ball larger and unobstructed for stronger tracking.';if(cutFrames.length)co.trackingWarning=(co.trackingWarning?co.trackingWarning+' ':'')+'Possible camera cuts were detected; ball trails and form analysis were reset between sections.';co.msg='Analysis complete.';
+co.hoops=hoops;var detectedHoops=hoops.filter(function(h){return h.found&&h.box});if(detectedHoops.length){var representative=detectedHoops[Math.floor(detectedHoops.length/2)],representativeBox=representative.box;co.hoopBox=representativeBox;co.backboardBox={x1:Math.max(0,representativeBox.x-representativeBox.w*.72),x2:Math.min(1,representativeBox.x+representativeBox.w*.72),y1:Math.max(0,representativeBox.y-representativeBox.h*.9),y2:Math.max(0,representativeBox.y-representativeBox.h*.12)};co.hoop={x:representativeBox.x,y:representativeBox.y,r:Math.max(.015,Math.min(.12,representativeBox.w*.22)),t:representative.t};co.hoopDetectStatus='Hoop found in '+detectedHoops.length+' of '+hoops.length+' sampled frames. The overlay follows the recorded detections; the rim centre is approximate and should be reviewed.'}
+if(!co.hoop){try{coachStage('Automatically locating the hoop...',.985);var hoopTarget=tracks.length?tracks.reduce(function(best,b){return b.y<best.y?b:best},tracks[0]).t:Math.max(0,Math.min(video.duration-.05,video.duration*.5));await withTimeout(new Promise(function(resolve,reject){var settled=false;function done(error){if(settled)return;settled=true;video.removeEventListener('seeked',onHoopSeek);if(error)reject(error);else resolve()}function onHoopSeek(){done()}video.addEventListener('seeked',onHoopSeek);try{video.currentTime=hoopTarget;if(Math.abs(video.currentTime-hoopTarget)<.001&&video.readyState>=2)done()}catch(e){done(e)}}),7000,'Hoop frame positioning');var found=await withTimeout(detectHoopInFrame(video),12000,'Automatic hoop detection');if(found){found.t=hoopTarget;co.hoopBox=found;co.backboardBox={x1:Math.max(0,found.x-found.w*.72),x2:Math.min(1,found.x+found.w*.72),y1:Math.max(0,found.y-found.h*.9),y2:Math.max(0,found.y-found.h*.12)};co.hoop={x:found.x,y:found.y,r:Math.max(.015,Math.min(.12,found.w*.22))};co.hoopDetectStatus='Hoop automatically located. The green rim marker is an estimate from the hoop bounding box; check its position before accepting any make/miss suggestions.'}else{co.hoopDetectStatus='Automatic hoop detection did not find a reliable hoop in the selected frame. The overlay will show this as not detected; try a clearer angle or adjust the rim manually.'}}catch(hoopError){co.hoopDetectStatus='Automatic hoop calibration was unavailable: '+(hoopError&&hoopError.message?hoopError.message:hoopLoadError||'detector failed')+'. Manual adjustment remains available.'}}
+refreshHoopEstimates();co.st='done';co.sel=-1;if(!tracks.length)co.trackingWarning=co.trackingWarning||'No basketball detections were found. The ball may be too small, blurred, hidden, or outside the frame.';else if(tracks.length<8)co.trackingWarning='Only a short ball trail was detected. Keep the ball larger and unobstructed for stronger tracking.';if(cutFrames.length)co.trackingWarning=(co.trackingWarning?co.trackingWarning+' ':'')+'Possible camera cuts were detected; ball trails and form analysis were reset between sections.';if(droppedVideoFrames)co.trackingWarning=(co.trackingWarning?co.trackingWarning+' ':'')+'The browser skipped '+droppedVideoFrames+' presented video frame(s); results may not include every source frame.';co.msg='Analysis complete.';
 }catch(e){detectorFinished=true;try{if(pose)pose.close();if(detector)detector.close()}catch(ignore){}co.st='err';co.msg=e&&e.message?e.message:'The analysis failed. Try an MP4 or MOV file.'}
 finally{try{video.pause();video.removeAttribute('src');video.load()}catch(ignore){}}
 window.cr()};
@@ -627,13 +695,12 @@ window.cr()};
     }else if(diagnostic)diagnostic.remove();
     if(co.st!=='done')return;
     var card=document.createElement('div');card.className='card';
-    var html='<h2>Ball tracking + hoop estimates</h2><div class="hint" style="text-align:left">'+(co.balls||[]).length+' ball positions tracked. Orange markers and a short trail appear over the video. The detector can miss a small or blurred ball.</div>';
+    var html='<h2>Ball tracking + hoop estimates</h2><div class="hint" style="text-align:left">'+(co.videoFramesProcessed||0)+' video frames checked · '+(co.ballDetectionFrames||0)+' frames contained a confirmed basketball detection · '+(co.balls||[]).length+' ball positions linked into the trail · '+(co.hoops||[]).filter(function(h){return h.found}).length+'/'+(co.hoops||[]).length+' hoop scans found the hoop. Orange shows the detected ball path; cyan shows the detected hoop region.</div>';
     if(co.cutSummary)html+='<div class="hint" style="text-align:left">Camera sections: '+co.cutSummary.sections+' · Possible angle changes: '+co.cutSummary.changes+' · Sections with shots: '+co.cutSummary.sectionsWithShots+' · Skipped short/unusable: '+co.cutSummary.skipped+'.</div>';
     if(co.trackingWarning)html+='<div class="hint" style="text-align:left;color:#ffb020">'+esc(co.trackingWarning)+'</div>';
-    html+='<div class="hint" style="text-align:left;margin:8px 0">Pause the video on a clear frame, then select the rim centre. The coach can estimate a likely make or miss when a tracked ball crosses that line. Review every suggestion before saving it.</div>';
-    html+='<button class="btn on" style="width:100%;margin-bottom:7px" onclick="autoDetectHoop()">✦ Find hoop automatically</button>';
+    html+='<div class="hint" style="text-align:left;margin:8px 0">The hoop detector scans repeatedly through the video so its outline can follow camera changes. Cyan is the detected hoop region. Pink is only an estimated backboard area, not a separate AI detection. The green ellipse is an approximate rim centre derived from the hoop box; check it before trusting any make/miss suggestion.</div>';
     if(co.hoopDetectStatus)html+='<div class="hint" style="text-align:left;color:#48d9ff;margin:4px 0 8px">'+esc(co.hoopDetectStatus)+'</div>';
-    html+='<button class="btn '+(co.hoop?'on':'')+'" style="width:100%" onclick="toggleHoopCalibration()">'+(co.calibratingHoop?'Tap rim centre in video above':co.hoop?'Recalibrate rim centre manually':'Select rim centre manually')+'</button>';
+    html+='<div class="row" style="gap:8px"><button class="btn g1" onclick="autoDetectHoop()">Scan current frame</button><button class="btn g1" onclick="toggleHoopCalibration()">'+(co.calibratingHoop?'Tap rim centre above':co.hoop?'Adjust rim manually':'Mark rim manually')+'</button></div>';
     if(co.hoop)html+='<div class="hint">Rim radius: <b id="hoopRadiusValue">'+Math.round(co.hoop.r*100)+'%</b><input type="range" min="2" max="12" step=".5" value="'+co.hoop.r*100+'" oninput="setHoopRadius(this.value)" style="padding:0;margin:8px 0"></div>';
     var estimates=(co.shots||[]).map(function(s,i){var status=s.estimate?'<span>'+s.estimate.label+' ('+Math.round(s.estimate.confidence*100)+'%)</span><button class="btn" onclick="csel('+i+');cout(&quot;'+s.estimate.out+'&quot;)">Review suggestion</button>':'<span style="color:#ffb020">Uncertain</span>';var reason=s.estimateReason?'<div class="hint" style="text-align:left">'+esc(s.estimateReason)+'</div>':'';return '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--ln)"><div class="row" style="justify-content:space-between"><b>'+mmss(s.t)+'</b>'+status+'</div>'+reason+'</div>'}).join('');
     if(estimates)html+='<div style="border-top:1px solid var(--ln);margin-top:9px;padding-top:8px"><b>Shot-by-shot tracking confidence</b>'+estimates+'</div>';
