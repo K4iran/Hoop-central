@@ -458,18 +458,51 @@ render();if(!S.p.name)prof();
     co.cons='Found '+n+' likely shooting motion(s). Average pose landmark visibility was '+Math.round(confidence*100)+'%. '+shots.filter(function(s){return s.ballLinked}).length+' of these candidates had the basketball detected close to the shooting hand. Form notes are cautious 2D observations, not proof of why a shot went in or missed.';
   }
 
+  function withTimeout(promise,ms,label){
+    var timer;
+    return Promise.race([
+      promise,
+      new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error(label+' timed out after '+Math.round(ms/1000)+' seconds. Check your connection and try again.'))},ms)})
+    ]).finally(function(){clearTimeout(timer)});
+  }
+  function coachStage(message,progress){
+    co.msg=message;co.prog=progress||0;window.cr();
+  }
   window.run=async function(){
-    co.st='run';co.prog=0;co.msg='Loading the improved pose model and basketball detector...';co.shots=[];co.find=[];co.FR=[];co.balls=[];co.hoop=null;co.ballFrames=0;co.trackingWarning='';window.cr();
+    co.st='run';co.prog=0;co.msg='Preparing your video...';co.shots=[];co.find=[];co.FR=[];co.balls=[];co.hoop=null;co.ballFrames=0;co.trackingWarning='';window.cr();
     var pose=null,detector=null,video=document.createElement('video');
     try{
       video.muted=true;video.playsInline=true;video.preload='auto';video.src=co.url;
-      await new Promise(function(resolve,reject){video.onloadeddata=resolve;video.onerror=function(){reject(new Error('This video could not be read. Try an MP4 (H.264) file.'))}});
+      coachStage('Opening video...',.02);
+      await withTimeout(new Promise(function(resolve,reject){
+        if(video.readyState>=2)return resolve();
+        video.onloadeddata=resolve;
+        video.onerror=function(){reject(new Error('This video could not be read. Try an MP4 (H.264) file.'))};
+      }),20000,'Video loading');
+      if(!Number.isFinite(video.duration)||video.duration<=0)throw new Error('The video duration could not be read. Try exporting it as MP4 (H.264).');
       if(video.duration>90)throw new Error('This video is longer than 90 seconds. Trim it and try again.');
-      var vision=await import(CDN+'vision_bundle.mjs'),files=await vision.FilesetResolver.forVisionTasks(CDN+'wasm');
+      coachStage('Loading MediaPipe vision engine...',.05);
+      var vision=await withTimeout(import(CDN+'vision_bundle.mjs'),25000,'Vision engine download');
+      coachStage('Preparing vision runtime...',.09);
+      var files=await withTimeout(vision.FilesetResolver.forVisionTasks(CDN+'wasm'),25000,'Vision runtime setup');
       var makePose=function(delegate){return vision.PoseLandmarker.createFromOptions(files,{baseOptions:{modelAssetPath:POSE_FULL,delegate:delegate},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.5,minPosePresenceConfidence:.5,minTrackingConfidence:.5})};
-      try{pose=await makePose('GPU')}catch(e){pose=await makePose('CPU')}
+      coachStage('Downloading body-tracking model...',.13);
+      try{pose=await withTimeout(makePose('GPU'),35000,'GPU body-model loading')}catch(gpuError){
+        coachStage('GPU unavailable or slow — trying CPU body tracking...',.17);
+        pose=await withTimeout(makePose('CPU'),45000,'CPU body-model loading');
+      }
       var makeDetector=function(delegate){return vision.ObjectDetector.createFromOptions(files,{baseOptions:{modelAssetPath:BALL_MODEL,delegate:delegate},runningMode:'VIDEO',scoreThreshold:.12,maxResults:5,categoryAllowlist:['sports ball']})};
-      try{detector=await makeDetector('GPU')}catch(e){try{detector=await makeDetector('CPU')}catch(e2){co.trackingWarning='The ball detector could not load on this device. Form analysis will still run.'}}
+      coachStage('Loading basketball detector...',.21);
+      try{
+        try{detector=await withTimeout(makeDetector('GPU'),30000,'GPU basketball-model loading')}
+        catch(gpuBallError){
+          coachStage('Trying CPU basketball detection...',.24);
+          detector=await withTimeout(makeDetector('CPU'),30000,'CPU basketball-model loading');
+        }
+      }catch(ballError){
+        co.trackingWarning='The basketball detector could not load on this device. Body-form analysis will continue; ball tracking and rim estimates will be unavailable.';
+        detector=null;
+      }
       var interval=1/8,total=Math.max(1,Math.floor(video.duration/interval)),frames=[],tracks=[],last=null,previous=null;
       co.asp=video.videoWidth/video.videoHeight;co.dt=interval;
       for(var i=0;i<total;i++){
@@ -477,7 +510,7 @@ render();if(!S.p.name)prof();
         await new Promise(function(resolve,reject){
           var done=false;
           function finish(){if(done)return;done=true;video.removeEventListener('seeked',finish);video.removeEventListener('error',fail);resolve()}
-          function fail(){if(done)return;done=true;reject(new Error('The video could not be decoded near '+mmss(time)+'.'))}
+          function fail(){if(done)return;done=true;video.removeEventListener('seeked',finish);video.removeEventListener('error',fail);reject(new Error('The video could not be decoded near '+mmss(time)+'.'))}
           video.addEventListener('seeked',finish,{once:true});video.addEventListener('error',fail,{once:true});video.currentTime=time;if(Math.abs(video.currentTime-time)<.0005)finish();
         });
         var stamp=Math.round(time*1000)+1,result=pose.detectForVideo(video,stamp);
@@ -502,7 +535,7 @@ render();if(!S.p.name)prof();
           if(selected){previous=last;last=selected;tracks.push(selected)}
           else if(last&&time-last.t>.7){last=null;previous=null}
         }
-        co.prog=(i+1)/total;co.msg='Analysing body and following the ball · '+(i+1)+' / '+total+' frames';co.FR=frames;co.balls=tracks;
+        co.prog=.25+.74*(i+1)/total;co.msg='Analysing body and following the ball · '+(i+1)+' / '+total+' frames';co.FR=frames;co.balls=tracks;
         if(i%3===0)window.cr();
       }
       pose.close();pose=null;if(detector){detector.close();detector=null}
@@ -510,10 +543,12 @@ render();if(!S.p.name)prof();
       if(!tracks.length)co.trackingWarning=co.trackingWarning||'No basketball detections were found. The ball may be too small, blurred, hidden or outside the frame.';
       else if(tracks.length<8)co.trackingWarning='Only a short ball trail was detected. Keep the ball larger and unobstructed for stronger tracking.';
       co.msg='Analysis complete.';
-    }catch(e){try{if(pose)pose.close();if(detector)detector.close()}catch(ignore){}co.st='err';co.msg=e&&e.message?e.message:'The analysis failed. Try an MP4 or MOV file.'}
+    }catch(e){
+      try{if(pose)pose.close();if(detector)detector.close()}catch(ignore){}
+      co.st='err';co.msg=e&&e.message?e.message:'The analysis failed. Try an MP4 or MOV file.';
+    }
     window.cr();
   };
-
   window.cr=function(){
     oldCr();
     var root=$('#cr');if(!root||co.st!=='done')return;
