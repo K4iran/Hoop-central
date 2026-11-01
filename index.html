@@ -618,7 +618,7 @@ await new Promise(function(resolve,reject){
       if(signature&&previousPose){var movement=Math.hypot(signature.x-previousPose.x,signature.y-previousPose.y)/Math.max(.035,previousPose.scale),scaleRatio=Math.max(signature.scale,previousPose.scale)/Math.max(.025,Math.min(signature.scale,previousPose.scale));poseJump=movement>.9||scaleRatio>1.7}
     }
     var visualCut=(delta.mean>.25&&delta.changed>.43)||(shouldPose&&delta.mean>.18&&poseJump);
-    if(processedFrames>1&&visualCut&&frames.length-lastCut>=2){cutFrames.push(frames.length);segmentIndex++;lastCut=frames.length;last=null;previous=null;previousPose=null}
+    if(processedFrames>1&&frames.length>0&&visualCut&&frames.length-lastCut>=2){cutFrames.push(frames.length);segmentIndex++;lastCut=frames.length;last=null;previous=null;previousPose=null}
     if(shouldPose){if(signature)previousPose=signature;frames.push(landmarks);lastPoseTime=time}
     previousThumb=currentThumb;
     if(detector){
