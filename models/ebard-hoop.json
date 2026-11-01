@@ -1,0 +1,14 @@
+{
+  "model": "E-BARD YOLOv8n basketball detector",
+  "source": "https://huggingface.co/GabrieleGiudici/E-BARD-detection-models",
+  "weights": "BODD_yolov8n_0001.pt",
+  "license": "CC-BY-4.0",
+  "inputSize": 704,
+  "classNames": [
+    "basketball",
+    "hoop",
+    "player",
+    "referee"
+  ],
+  "hoopClassId": 1
+}
