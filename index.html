@@ -609,7 +609,7 @@ var makeDetector=function(delegate){return vision.ObjectDetector.createFromOptio
 coachStage('Starting optional basketball detection...',.21);var hoopLoadError='',hoopLoadPromise=getHoopSession().catch(function(e){hoopLoadError=e&&e.message?e.message:'The hoop detector could not load.';return null});
 var detectorPromise=makeDetector('CPU').then(function(readyDetector){if(detectorFinished){try{readyDetector.close()}catch(ignore){}}else detector=readyDetector;return readyDetector}).catch(function(){co.trackingWarning='The basketball detector could not load on this device. Body-form analysis will continue, but ball tracking and rim estimates will be unavailable.';return null});
 await Promise.race([Promise.all([detectorPromise,hoopLoadPromise]),new Promise(function(resolve){setTimeout(resolve,9000)})]);if(!detector){co.trackingWarning='Basketball detection is still loading or unavailable. Continuing with body-form analysis; ball tracking may be missing.';coachStage('Ball detector delayed — continuing with body tracking...',.25)}
-var interval=1/8,total=Math.max(1,Math.ceil(video.duration/interval)),frames=[],tracks=[],hoops=[],lastHoopScan=-Infinity,hoopScanBusy=false,hoopScanCount=0,hoopScanHits=0,last=null,previous=null,cutFrames=[],segmentIndex=0,lastCut=-100,previousThumb=null,previousPose=null,lastPoseTime=-Infinity,lastStamp=0,processedFrames=0,detectionFrames=0,droppedVideoFrames=0,lastPresentedFrames=0;
+var interval=1/8,total=Math.max(1,Math.ceil(video.duration/interval)),frames=[],tracks=[],hoops=[],lastHoopScan=-Infinity,hoopScanBusy=false,hoopScanCount=0,hoopScanHits=0,last=null,previous=null,cutFrames=[],cutTimesExact=[],segmentIndex=0,lastCut=-100,lastThumbDelta=0,previousThumb=null,previousPose=null,lastPoseTime=-Infinity,lastStamp=0,processedFrames=0,detectionFrames=0,droppedVideoFrames=0,lastPresentedFrames=0;
 var cutCanvas=document.createElement('canvas');cutCanvas.width=32;cutCanvas.height=18;var cutContext=cutCanvas.getContext('2d',{willReadFrequently:true});co.asp=video.videoWidth/video.videoHeight;co.dt=interval;
 function thumb(){if(!cutContext)return null;try{cutContext.drawImage(video,0,0,32,18);return cutContext.getImageData(0,0,32,18).data}catch(ignore){return null}}
 function compareThumb(a,b){if(!a||!b)return{mean:0,changed:0};var totalDiff=0,changed=0,pixels=a.length/4;for(var q=0;q<a.length;q+=4){var dr=Math.abs(a[q]-b[q]),dg=Math.abs(a[q+1]-b[q+1]),db=Math.abs(a[q+2]-b[q+2]),d=(dr+dg+db)/3;totalDiff+=d/255;if(d>48)changed++}return{mean:totalDiff/pixels,changed:changed/pixels}}
@@ -636,8 +636,8 @@ await new Promise(function(resolve,reject){
       signature=poseSignature(landmarks);
       if(signature&&previousPose){var movement=Math.hypot(signature.x-previousPose.x,signature.y-previousPose.y)/Math.max(.035,previousPose.scale),scaleRatio=Math.max(signature.scale,previousPose.scale)/Math.max(.025,Math.min(signature.scale,previousPose.scale));poseJump=movement>.9||scaleRatio>1.7}
     }
-    var visualCut=(delta.mean>.42&&delta.changed>.72)||(shouldPose&&delta.mean>.30&&delta.changed>.68&&poseJump);
-    if(processedFrames>1&&frames.length>0&&visualCut&&frames.length-lastCut>=2){cutFrames.push(frames.length);segmentIndex++;lastCut=frames.length;last=null;previous=null;previousPose=null}
+    var visualCut=(delta.mean>.42&&delta.changed>.72&&lastThumbDelta<.18)||(shouldPose&&delta.mean>.30&&delta.changed>.68&&poseJump&&lastThumbDelta<.28);lastThumbDelta=delta.mean;
+    if(processedFrames>1&&frames.length>0&&visualCut&&frames.length-lastCut>=2){cutFrames.push(frames.length);cutTimesExact.push(time);segmentIndex++;lastCut=frames.length;last=null;previous=null;previousPose=null}
     if(shouldPose){if(signature)previousPose=signature;frames.push(landmarks);lastPoseTime=time}
     previousThumb=currentThumb;
     if(hoopSession&&!hoopScanBusy&&time-lastHoopScan>=.8){
@@ -661,7 +661,7 @@ await new Promise(function(resolve,reject){
       if(selected){selected.segment=segmentIndex;previous=last;last=selected;tracks.push(selected);detectionFrames++}
       else if(last&&time-last.t>.7){last=null;previous=null}
     }
-    co.videoFramesProcessed=processedFrames;co.ballDetectionFrames=detectionFrames;co.frameDropCount=droppedVideoFrames;co.hoops=hoops;co.prog=.25+.72*Math.min(1,time/Math.max(.001,video.duration));co.msg='Checking every presented frame for the basketball · '+processedFrames+' frames';co.FR=frames;co.balls=tracks;co.cutTimes=cutFrames.map(function(k){return k*interval});
+    co.videoFramesProcessed=processedFrames;co.ballDetectionFrames=detectionFrames;co.frameDropCount=droppedVideoFrames;co.hoops=hoops;co.prog=.25+.72*Math.min(1,time/Math.max(.001,video.duration));co.msg='Checking every presented frame for the basketball · '+processedFrames+' frames';co.FR=frames;co.balls=tracks;co.cutTimes=cutTimesExact.slice();
     if(processedFrames%12===0)window.cr();
     if(video.ended){finish();return}
     schedule();
@@ -672,7 +672,7 @@ await new Promise(function(resolve,reject){
   video.play().catch(function(e){finish(new Error('Could not start frame-by-frame video processing: '+(e&&e.message?e.message:'Playback was blocked.')))});
 });
 detectorFinished=true;try{if(pose)pose.close()}catch(ignore){}pose=null;if(detector){try{detector.close()}catch(ignore){}detector=null}
-co.FR=frames;co.balls=tracks;co.hoops=hoops;co.ballFrames=tracks.length;co.videoFramesProcessed=processedFrames;co.ballDetectionFrames=detectionFrames;co.frameDropCount=droppedVideoFrames;co.cutTimes=cutFrames.map(function(k){return k*interval});coachStage('Analysing each camera section separately...',.98);
+co.FR=frames;co.balls=tracks;co.hoops=hoops;co.ballFrames=tracks.length;co.videoFramesProcessed=processedFrames;co.ballDetectionFrames=detectionFrames;co.frameDropCount=droppedVideoFrames;co.cutTimes=cutTimesExact.slice();coachStage('Analysing each camera section separately...',.98);
 var bounds=[0].concat(cutFrames,[frames.length]),allShots=[],allNotes=[],sectionCount=0,skippedSections=0;
 for(var si=0;si<bounds.length-1;si++){var start=bounds[si],end=bounds[si+1],length=end-start;if(length<7){skippedSections++;continue}co.FR=frames.slice(start,end);co.balls=tracks.filter(function(b){return b.segment===si});co.offset=start*interval;co.activeSegment=si;try{analyse();var sectionShots=co.shots||[];if(sectionShots.length)sectionCount++;allShots=allShots.concat(sectionShots);(co.find||[]).forEach(function(note){allNotes.push(note)})}catch(sectionError){skippedSections++}}
 co.FR=frames;co.balls=tracks;co.offset=0;co.activeSegment=0;co.shots=allShots.sort(function(a,b){return a.t-b.t});var seenNotes={};co.find=allNotes.filter(function(note){var key=note.o;if(seenNotes[key])return false;seenNotes[key]=true;return true}).slice(0,8);var confidence=co.shots.length?co.shots.reduce(function(sum,shot){return sum+(shot.poseConfidence||0)},0)/co.shots.length:0;co.cutSummary={changes:cutFrames.length,sections:bounds.length-1,sectionsWithShots:sectionCount,skipped:skippedSections};
