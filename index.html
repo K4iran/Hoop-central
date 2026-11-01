@@ -423,7 +423,7 @@ render();if(!S.p.name)prof();
     var rect=c.getBoundingClientRect(),w=c.clientWidth,h=c.clientHeight,scale=Math.min(w/v.videoWidth,h/v.videoHeight),ox=(w-v.videoWidth*scale)/2,oy=(h-v.videoHeight*scale)/2;
     var nx=(e.clientX-rect.left-ox)/(v.videoWidth*scale),ny=(e.clientY-rect.top-oy)/(v.videoHeight*scale);
     if(nx<0||nx>1||ny<0||ny>1)return;
-    co.hoop={x:nx,y:ny,r:co.hoop?co.hoop.r:.035,t:v.currentTime};co.calibratingHoop=false;co.hoopDetectStatus='Rim centre confirmed. Review the overlay and shot suggestions.';
+    co.hoop={x:nx,y:ny,r:co.hoop?co.hoop.r:.035,t:v.currentTime,segment:shotSegmentForTime(v.currentTime),manual:true};co.calibratingHoop=false;co.hoopDetectStatus='Rim centre confirmed. Review the overlay and shot suggestions.';
     c.style.pointerEvents='none';c.style.cursor='default';refreshHoopEstimates();window.cr();
   };
 
@@ -440,9 +440,9 @@ render();if(!S.p.name)prof();
   function shotSegmentForTime(time){return (co.cutTimes||[]).filter(function(t){return t<=time}).length}
 
   function hoopAt(time){
-    var samples=(co.hoops||[]).filter(function(h){return h.segment===shotSegmentForTime(time)&&Math.abs(h.t-time)<=1.25}).sort(function(a,b){return Math.abs(a.t-time)-Math.abs(b.t-time)});
-    if(samples.length){var sample=samples[0];if(!sample.found||!sample.box)return null;var box=sample.box;return{x:box.x,y:box.y,r:Math.max(.015,Math.min(.12,box.w*.22)),score:box.score,t:sample.t,box:box,automatic:true}}
-    if(co.hoop&&(!Number.isFinite(co.hoop.t)||Math.abs(co.hoop.t-time)<=1.25))return co.hoop;
+    var segment=shotSegmentForTime(time),samples=(co.hoops||[]).filter(function(h){return h.segment===segment&&h.found&&h.box&&Math.abs(h.t-time)<=3.0}).sort(function(a,b){return Math.abs(a.t-time)-Math.abs(b.t-time)});
+    if(samples.length){var sample=samples[0],box=sample.box;return{x:box.x,y:box.y,r:Math.max(.015,Math.min(.12,box.w*.22)),score:box.score,t:sample.t,box:box,automatic:true}}
+    if(co.hoop&&co.hoop.manual&&co.hoop.segment===segment)return co.hoop;
     return null;
   }
 
@@ -456,7 +456,7 @@ render();if(!S.p.name)prof();
     for(var i=1;i<points.length;i++){
       var a=points[i-1],b=points[i],gap=b.t-a.t;
       if(gap<=0||gap>.45)continue;
-      if(a.y<co.hoop.y&&b.y>=co.hoop.y&&b.y>a.y){
+      if(a.y<rim.y&&b.y>=rim.y&&b.y>a.y){
         crossed=true;
         var f=(rim.y-a.y)/(b.y-a.y),crossX=a.x+(b.x-a.x)*f,dx=Math.abs(crossX-rim.x),r=rim.r;
         if(dx<=r*1.05){best={out:'m',label:'Likely make',confidence:Math.min(.86,.5+(b.score||0)*.24+Math.max(0,.4-gap)*.22)};break}
